@@ -1,3 +1,3 @@
 # CS420_project
 
-Hi this is Rylan
+Cannon's algorithm, a distributed parallel matrix-matrix multiplication algorithm is implemented and compared to a naive MMM algorithm. 
