@@ -1,6 +1,9 @@
 #include "mpi.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "support.h"
+
+#define DEBUG
 
 int main(int argc, char* argv[]) {
     MPI_Status status;
@@ -9,12 +12,21 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_of_procs); 
 
-
     int num_of_rows_and_cols_of_procs; // num of rows should be equal to num of cols
 
     double **A, **B; // two input matrices, matrices could be non-squared
     int size_of_matrix_A[2], size_of_matrix_B[2];
     int size_of_A_block[2], size_of_B_block[2];
+
+    #ifdef DEBUG
+    A = create_matrix(9, 9);
+    B = create_matrix(9, 9);
+    init_spec(A, 9, 9);
+    init_spec(B, 9, 9);
+    size_of_matrix_A = 9; size_of_matrix_B = 9;
+    num_of_rows_and_cols_of_procs = 3;
+
+    #endif
 
     size_of_A_block[0] = size_of_matrix_A[0] / num_of_rows_and_cols_of_procs;
     size_of_A_block[1] = size_of_matrix_A[1] / num_of_rows_and_cols_of_procs;
@@ -22,6 +34,9 @@ int main(int argc, char* argv[]) {
     size_of_B_block[1] = size_of_matrix_B[1] / num_of_rows_and_cols_of_procs;
 
     double **A_block, **B_block, **C_block; 
+    A_block = create_matrix(size_of_A_block[0], size_of_matrix_A[1]);
+    B_block = create_matrix(size_of_B_block[0], size_of_matrix_B[1]);
+
 
     // for rank 0: get the input of the two matrices (maybe from files)
 
@@ -86,13 +101,25 @@ int main(int argc, char* argv[]) {
             MPI_DOUBLE, 0, 1, MPI_STATUS_IGNORE);
     }
     // initialization ends here
-        
+    
+    #ifdef DEBUG
+    printf("the A block from rank %d is: \n", my_rank);
+    for (int i = 0; i < size_of_A_block[0]; i ++) {
+        for (int j = 0; j < size_of_A_block[1]; j ++) {
+            printf("%lf\t", A_block[i][j]);
+        }
+        printf("\n");
+    }
+    #endif
 
 
     // shifting and calculate
 
     // gather
 
+    free(A_block);
+    free(B_block);
+
     MPI_Finalize();
-    exit(0);
+    return 0;
 }

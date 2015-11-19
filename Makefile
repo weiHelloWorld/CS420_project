@@ -3,7 +3,7 @@ SHELL=/bin/bash
 CC=mpiicc
 CCFLAGS = -std=c99 -O2
 
-SRC=naive.c
+SRC=naive.c MPI_cannon.c
 EXE=$(SRC:.c=.exe)
 
 all: $(EXE)
