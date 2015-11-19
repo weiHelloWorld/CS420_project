@@ -1,71 +1,62 @@
 // CS420 Project: naive.c for MMM
 // Created by Rylan Dmello on Nov 19 2015 
 // Naive Algorithm for distributed MMM (does not include OpenMP yet)
+// A[m, n] * B[n, m] = C[m, m]
+// Usage: mpirun -np 2 ./naive.exe 10 10
 
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-// create_matrix function is the exact same one
-// used for mp1 in mmm_basic.c
-double** create_matrix(int m, int n) {
-    double **mat; 
-    int i;
-
-    mat = (double**) malloc(m*sizeof(double*));
-    mat[0] = (double*)malloc(m*n*sizeof(double));
-
-    for (i=1; i<m; i++) 
-        mat[i] = mat[0] + i*n;
-    
-    return mat;
-}
-
-// print_matrix fcn is also from mmm_basic.c in mp1
-void print_matrix (double **mat, int m, int n) {
-    FILE* fp;
-    int i, j;
-
-    fp = fopen("verify.txt", "w");
-    if (fp == NULL) {
-        fprintf(stderr, "Unable to write the file 'verify.txt'\n");
-        exit(1);
-    }
-
-    for (i=0; i<m; i++) {
-        for (j=0; j<n; j++) {
-            fprintf(fp, "%lf\t", mat[i][j]);
-        }
-        fprintf(fp, "\n");
-    }
-    fclose(fp);
-}
-
-//free_matrix from mmm_basic.c in mp1
-void free_matrix(double **M){
-    free(M[0]);
-    free(M);
-}
+#include "support.h"
 
 // Main
 int main (int argc, char **argv) {
 
-    int procs, rank, m, n; 
-    double **A;
-
+    int procs, rank, m, n, r, c; 
+    double **A, **B, **C;
+   
+    // m, n = size of actual matrix
+    // r, c = size of nprocessor matrix
     m = atoi(argv[1]);
     n = atoi(argv[2]);
+    r = atoi(argv[3]);
+    c = atoi(argv[4]);
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank); 
+    
+    // The 2D Cart_create and split algorithm is from the
+    // MPI Calls lecture on Fri, Oct 9. See the wiki for details
+    int dimSize[2] = {r, c};
+    int periodic[2] = {0, 0};
+    int cart_coords[2];
+    MPI_Comm comm2D, commR, commC;
+
+    MPI_Cart_create(MPI_COMM_WORLD, 2, dimSize, periodic, 0, &comm2D);
+
+    int row, col; 
+    MPI_Cart_coords(comm2D, rank, 2, cart_coords);
+    row = cart_coords[0]; col = cart_coords[1];
+    
+    MPI_Comm_split(comm2D, row, col, &commR);  // Row communicator
+    MPI_Comm_split(comm2D, col, row, &commC);  // Column communicator
+
+    // Now we have to distribute 1 matrix from rank 0 to all the ranks
+    if (rank == 0) {
+        fullA = create_matrix(m, n);
+        fullB = create_matrix(n, m);
+
+
+
+
+    }
+
 
     printf("Hello I am %d of %d \n", rank, procs);
 
     MPI_Finalize();
 
     A = create_matrix(m, n);
-    print_matrix(A, m, n);
+    init_spec(A, m, n);
+    log_matrix(A, m, n);
     free_matrix(A);
 
     return 0;
@@ -77,3 +68,4 @@ int main (int argc, char **argv) {
  * improvement over 2D array for storing
  * the matrix. 
  */
+
