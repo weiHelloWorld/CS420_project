@@ -8,6 +8,7 @@
 
 int main(int argc, char* argv[]) {
     MPI_Status status;
+    MPI_Request request[4];
     int my_rank, num_of_procs;
 
     MPI_Init(&argc, &argv);
@@ -39,16 +40,19 @@ int main(int argc, char* argv[]) {
     size_of_B_block[0] = size_of_B[0] / row_num_of_procs;
     size_of_B_block[1] = size_of_B[1] / row_num_of_procs;
 
+    assert(size_of_A_block[1] == size_of_B_block[0]);
+
     double **A_block, **B_block, **C_block, **temp_block_buffer_A, **temp_block_buffer_B; 
     A_block = create_matrix(size_of_A_block[0], size_of_A_block[1]);
     B_block = create_matrix(size_of_B_block[0], size_of_B_block[1]);
+    C_block = create_matrix(size_of_A_block[0], size_of_B_block[1]);
+
 
     temp_block_buffer_A = create_matrix(size_of_A_block[0], size_of_A_block[1]);
     temp_block_buffer_B = create_matrix(size_of_B_block[0], size_of_B_block[1]);
 
 
     // for rank 0: get the input of the two matrices (maybe from files)
-
 
 
     // initialization, partition into blocks and send to destination process
@@ -86,7 +90,6 @@ int main(int argc, char* argv[]) {
                     #ifdef DEBUG
                     // printf("temp_block_buffer_A = \n");
                     // log_matrix(temp_block_buffer_A, 3, 3);
-                    
                     assert(num_of_procs == 9);
                     #endif
 
@@ -127,12 +130,86 @@ int main(int argc, char* argv[]) {
     // initialization ends here
     
     #ifdef DEBUG
-        printf("the A block from rank %d is: \n", my_rank);
-        log_matrix(A_block, 3,3);
+        // printf("the A block from rank %d is: \n", my_rank);
+        // log_matrix(A_block, 3,3);
     #endif
 
 
     // shifting and calculate
+    for (int index_of_stages = 0; index_of_stages < row_num_of_procs; index_of_stages ++) { // (row_num_of_procs) is equal to the number of stages
+        // do multiplication in each stage
+        for (int i = 0; i < size_of_A_block[0]; i ++) {
+            for (int j = 0; j < size_of_A_block[1]; j ++) {
+                for (int k = 0; k < size_of_B_block[1]; k ++) {
+                    C_block[i][k] += A[i][j] * B[j][k];
+                }
+            }
+        }
+        // do shifting after calculation
+        for (int i = 0; i < size_of_A_block[0]; i ++) {
+            for (int j = 0; j < size_of_A_block[1]; j ++) {
+                temp_block_buffer_A[i][j] = A[i][j];  // copy to buffer, ready to send
+            }   
+        }
+        int destination_rank = my_rank % row_num_of_procs == 0 ? my_rank + row_num_of_procs - 1 : my_rank - 1;
+        MPI_Isend(temp_block_buffer_A[0], 
+            size_of_A_block[0] * size_of_A_block[1], 
+            MPI_DOUBLE,
+            destination_rank,
+            0,
+            MPI_COMM_WORLD,
+            request
+            );
+
+        for (int i = 0; i < size_of_B_block[0]; i ++) {
+            for (int j = 0; j < size_of_B_block[1]; j ++) {
+                temp_block_buffer_B[i][j] = B[i][j];  // copy to buffer, ready to send
+            }   
+        }
+        destination_rank = my_rank < row_num_of_procs ? my_rank + (row_num_of_procs - 1) * row_num_of_procs : my_rank - row_num_of_procs;
+        MPI_Isend(temp_block_buffer_A[0], 
+            size_of_B_block[0] * size_of_B_block[1], 
+            MPI_DOUBLE,
+            destination_rank,
+            1,
+            MPI_COMM_WORLD,
+            request + 1
+            );
+        int source_rank = (my_rank + 1) % row_num_of_procs == 0 ? my_rank - row_num_of_procs + 1 : my_rank + 1;
+        MPI_Irecv(A_block[0],
+            size_of_A_block[0] * size_of_A_block[1],
+            MPI_DOUBLE,
+            source_rank,
+            0,
+            MPI_COMM_WORLD,
+            request + 2
+            );
+        source_rank = my_rank >= (row_num_of_procs - 1) * row_num_of_procs ? my_rank - (row_num_of_procs - 1) * row_num_of_procs : my_rank + row_num_of_procs;
+        MPI_Irecv(B_block[0],
+            size_of_B_block[0] * size_of_B_block[1],
+            MPI_DOUBLE,
+            source_rank,
+            1,
+            MPI_COMM_WORLD,
+            request + 3
+            );
+        MPI_Waitall(4, request, MPI_STATUS_IGNORE);
+
+        #ifdef DEBUG
+        if (my_rank == 0) {
+            printf("the A block from rank %d is: \n", my_rank);
+            log_matrix(A_block, 3,3);
+            printf("the B block from rank %d is: \n", my_rank);
+            log_matrix(B_block, 3,3);
+            printf("the C block from rank %d is: \n", my_rank);
+            log_matrix(C_block, 3,3);
+        }
+
+        #endif
+
+    }   
+
+    
 
     // gather
 
