@@ -6,6 +6,25 @@
 
 #define DEBUG
 
+void my_print_matrix (char* filename, double **mat, int m, int n) {
+    FILE* fp;
+    int i, j;
+
+    fp = fopen(filename, "w");
+    if (fp == NULL) {
+        fprintf(stderr, "Unable to write the file %s\n", filename);
+        exit(1);
+    }
+
+    for (i=0; i<m; i++) {
+        for (j=0; j<n; j++) {
+            fprintf(fp, "%lf\t", mat[i][j]);
+        }
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+}
+
 int main(int argc, char* argv[]) {
     MPI_Status status;
     MPI_Request request[4];
@@ -30,7 +49,8 @@ int main(int argc, char* argv[]) {
     size_of_B[0] = 9; size_of_B[1] = 9;
     row_num_of_procs = 3;
     if (my_rank == 0) {
-        print_matrix(A, 9, 9);
+        my_print_matrix("matrix_A.txt", A, 9, 9);
+        my_print_matrix("matrix_B.txt", B, 9, 9);
     }
 
     #endif
@@ -46,6 +66,8 @@ int main(int argc, char* argv[]) {
     A_block = create_matrix(size_of_A_block[0], size_of_A_block[1]);
     B_block = create_matrix(size_of_B_block[0], size_of_B_block[1]);
     C_block = create_matrix(size_of_A_block[0], size_of_B_block[1]);
+
+    init_zero(C_block, size_of_A_block[0], size_of_B_block[1]); 
 
 
     temp_block_buffer_A = create_matrix(size_of_A_block[0], size_of_A_block[1]);
@@ -141,14 +163,14 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < size_of_A_block[0]; i ++) {
             for (int j = 0; j < size_of_A_block[1]; j ++) {
                 for (int k = 0; k < size_of_B_block[1]; k ++) {
-                    C_block[i][k] += A[i][j] * B[j][k];
+                    C_block[i][k] += A_block[i][j] * B_block[j][k];
                 }
             }
         }
         // do shifting after calculation
         for (int i = 0; i < size_of_A_block[0]; i ++) {
             for (int j = 0; j < size_of_A_block[1]; j ++) {
-                temp_block_buffer_A[i][j] = A[i][j];  // copy to buffer, ready to send
+                temp_block_buffer_A[i][j] = A_block[i][j];  // copy to buffer, ready to send
             }   
         }
         int destination_rank = my_rank % row_num_of_procs == 0 ? my_rank + row_num_of_procs - 1 : my_rank - 1;
@@ -160,14 +182,20 @@ int main(int argc, char* argv[]) {
             MPI_COMM_WORLD,
             request
             );
+        
+
 
         for (int i = 0; i < size_of_B_block[0]; i ++) {
             for (int j = 0; j < size_of_B_block[1]; j ++) {
-                temp_block_buffer_B[i][j] = B[i][j];  // copy to buffer, ready to send
+                temp_block_buffer_B[i][j] = B_block[i][j];  // copy to buffer, ready to send
             }   
         }
         destination_rank = my_rank < row_num_of_procs ? my_rank + (row_num_of_procs - 1) * row_num_of_procs : my_rank - row_num_of_procs;
-        MPI_Isend(temp_block_buffer_A[0], 
+
+        #ifdef DEBUG
+        // printf("index_of_stages = %d, my_rank = %d, destination_rank = %d\n", index_of_stages, my_rank, destination_rank);
+        #endif
+        MPI_Isend(temp_block_buffer_B[0], 
             size_of_B_block[0] * size_of_B_block[1], 
             MPI_DOUBLE,
             destination_rank,
@@ -195,19 +223,16 @@ int main(int argc, char* argv[]) {
             );
         MPI_Waitall(4, request, MPI_STATUS_IGNORE);
 
-        #ifdef DEBUG
-        if (my_rank == 0) {
-            printf("the A block from rank %d is: \n", my_rank);
-            log_matrix(A_block, 3,3);
-            printf("the B block from rank %d is: \n", my_rank);
-            log_matrix(B_block, 3,3);
+        
+    }   
+    #ifdef DEBUG
+        // if (my_rank == 0) {
             printf("the C block from rank %d is: \n", my_rank);
             log_matrix(C_block, 3,3);
-        }
+        // }
 
         #endif
 
-    }   
 
     
 
@@ -221,3 +246,4 @@ int main(int argc, char* argv[]) {
     MPI_Finalize();
     return 0;
 }
+
