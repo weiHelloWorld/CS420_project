@@ -15,7 +15,8 @@
 int main (int argc, char **argv) {
 
     int procs, rank, m, n, p, r, c; 
-    double **A, **B, **C;
+    double **A, **B, **C, **D;
+    double init_time, final_time, diff_time;
    
     // m, n = size of full matrix
     // r, c = size of nprocessor matrix
@@ -47,6 +48,7 @@ int main (int argc, char **argv) {
 
     //printf("%d: (%d, %d)\n", rank, row, col);
 
+    if(rank==0) init_time = get_clock();
     // Now we have to distribute 1 matrix from rank 0 to all the ranks
     A = create_matrix(m/r, n/c);
     B = create_matrix(n/r, p/c);
@@ -60,9 +62,13 @@ int main (int argc, char **argv) {
         double **tempA; tempA = create_matrix(m/r, n/c);
         double **tempB; tempB = create_matrix(n/r, p/c);
         
+        D = create_matrix(m, p);
+        D = seq_MMM(fullA, fullB, m, n, p);
+        /*
         printf("Sequential MMM gives: \n");
         log_matrix(seq_MMM(fullA, fullB, m, n, p), m, p); 
         printf("End of sequential output. \n");
+        */
 
         // Rank 0 sends the parts of matrix A and B to all the other ranks
         for (int i=0; i<r; i++) {
@@ -95,7 +101,7 @@ int main (int argc, char **argv) {
         free_matrix(fullB);
         free_matrix(tempA);
         free_matrix(tempB);
-        printf("%d: matrices initialized\n", rank);
+        //printf("%d: matrices initialized\n", rank);
     }
     else {
         MPI_Recv(&(A[0][0]), m*n/(r*c), MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
@@ -105,7 +111,7 @@ int main (int argc, char **argv) {
     //log_matrix(A, m/r, n/c);
     //log_matrix(B, n/r, p/c);
 
-    MPI_Barrier(MPI_COMM_WORLD); // All submatrices have been distributed
+    //MPI_Barrier(MPI_COMM_WORLD); // All submatrices have been distributed
 
     double **Arow, **Bcol; 
     Arow = create_matrix(m/r, n);
@@ -129,7 +135,7 @@ int main (int argc, char **argv) {
     }
     //printf("%d: Arow matrices built\n", rank);
     //if (rank == 0) log_matrix(Arow, m/r, n);
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
 
     // Build Bcol matrix for each processor
     for (int i=0; i<r; i++) {
@@ -148,7 +154,7 @@ int main (int argc, char **argv) {
         free_matrix(tempB);
     }
     //printf("%d: Bcol matrices built\n", rank);
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
     //if (rank == 0) log_matrix(Bcol, n, p/c);
     
     // Multiply Arow and Bcol to get Clocal
@@ -166,7 +172,7 @@ int main (int argc, char **argv) {
     }
     //if (rank == 0) log_matrix(Clocal, m/r, p/c);
     //printf("%d: Clocal matrices built\n", rank);
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
 
     // Send Clocals to root and get C
     if (rank == 0) {
@@ -191,22 +197,27 @@ int main (int argc, char **argv) {
             }
         }
         free_matrix(tempC);
+        
+        /*
         printf("Parallel MMM output is: \n");
         log_matrix(C, m, p);
         printf("End parallel MMM output. \n");
+        */
+        
+        final_time = get_clock();
+        diff_time = final_time - init_time;
+        printf("[%d %d %d %d %d] Naive Running Time: %lf\n", m, n, p, r, c, diff_time);
+        compare_matrices(C, D, m, p);
+
         free_matrix(C);
+        free_matrix(D);
     }
     else {
         MPI_Send(&(Clocal[0][0]), m*p/(r*c), MPI_DOUBLE, 0, rank, MPI_COMM_WORLD);
     }
-    //printf("Hello I am %d of %d \n", rank, procs);
-
-    //printf("Is this segfault?\n");
-    MPI_Barrier(MPI_COMM_WORLD);
 
     free_matrix(A);
     free_matrix(B); 
-    //free_matrix(C); 
     free_matrix(Arow);
     free_matrix(Bcol);
     free_matrix(Clocal);
@@ -220,5 +231,8 @@ int main (int argc, char **argv) {
  * and see if there is cache performance
  * improvement over 2D array for storing
  * the matrix. 
+ *
+ * Ask the TA if the matrices should be timed
+ * before being distributed
  */
 

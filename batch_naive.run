@@ -1,0 +1,32 @@
+#!/bin/bash
+#PBS -q cs
+#PBS -l walltime=00:30:00
+#PBS -l nodes=1:ppn=12:taub
+#PBS -N mp3_cs420
+#PBS -j oe
+
+# Move to the current directory
+cd $PBS_O_WORKDIR
+
+# Square matrices of increasing size and constant nodes
+for size in 10 20 30 40 50 60 70 80 90 100
+do
+    echo "Running naive.exe with size=${size}" >> out_naive.txt
+    mpirun -np 4 ./naive.exe ${size} ${size} ${size} 2 2 >> out_naive.txt
+    echo " " >> out_naive.txt
+done
+
+size=100;
+echo "----- NOW RUNNING VARIABLE NODES -----" >> out_naive.txt
+# Square matrices of constant size and increasing nodes
+for nodes in 1 2 3 4
+do
+    echo "Running naive.exe with size=${size}" >> out_naive.txt
+    mpirun -np $((nodes*nodes)) ./naive.exe ${size} ${size} ${size} 2 2 >> out_naive.txt
+    echo " " >> out_naive.txt
+done
+
+# Notes
+# We really should ask the TAs what options to use here
+# We might need to run on Taub/Golub/Xeon Phi specifically
+# There might be a maximum number of nodes too

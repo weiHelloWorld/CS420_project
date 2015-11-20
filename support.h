@@ -1,7 +1,9 @@
 // CS420 Project: support.h for common functions
-// create_matrix(), print_matrix(), log_matrix(), free_matrix()
-// init_zero(), init_spec(), init_rand()
-// get_clock()
+//
+// Matrix ops: create_matrix(), print_matrix(), log_matrix(), free_matrix()
+// Matrix initialization: init_zero(), init_spec(), init_rand()
+// MMM operations: seq_MMM(), compare_matrices()
+// Timing/profiling: get_clock()
 
 #include <mpi.h>
 #include <stdio.h>
@@ -87,8 +89,8 @@ void init_rand(double **mat, int m, int n) {
             mat[i][j]=rand();
 }
 
-// seq_MMM multiplies an m*n matrix by a n*m matrix and
-// returns a m*m matrix. 
+// seq_MMM multiplies an m*n matrix by a n*p matrix and
+// returns a m*p matrix. 
 double** seq_MMM (double **A, double **B, int m, int n, int p) {
     double **C; C = create_matrix(m, p); 
     init_zero(C, m, p);
@@ -98,6 +100,30 @@ double** seq_MMM (double **A, double **B, int m, int n, int p) {
                 C[i][j] += A[i][k] * B[k][j];
 
     return C;
+}
+
+// compare_matrices checks if two matrices C and D of aXb dimensions are equal
+// and prints the unequal parts of the matrix if unequal
+void compare_matrices (double **C, double **D, int a, int b) {
+    double **E; E=create_matrix(a,b); init_zero(E, a, b);
+    int count = 0;
+    double epsilon = 0.000000001;
+
+    for (int i=0; i<a; i++){
+        for (int j=0; j<b; j++) {
+            if(abs(C[i][j]-D[i][j])<epsilon) {
+                E[i][j]=1;
+                count++;
+            }
+        }
+    }
+    if (count == a*b) printf("Matrices are equal\n");
+    else {
+        printf("Matrices are unequal.\n");
+        printf("%d out of %d values match\n", count, a*b);
+        printf("Matrix of values (1=matching, 0=not matching)\n");
+        log_matrix(E, a, b);
+    }
 }
 
 // get_clock() from support.h in MP1
