@@ -87,6 +87,19 @@ void init_rand(double **mat, int m, int n) {
             mat[i][j]=rand();
 }
 
+// seq_MMM multiplies an m*n matrix by a n*m matrix and
+// returns a m*m matrix. 
+double** seq_MMM (double **A, double **B, int m, int n, int p) {
+    double **C; C = create_matrix(m, p); 
+    init_zero(C, m, p);
+    for (int i=0; i<m; i++) 
+        for (int j=0; j<p; j++) 
+            for (int k=0; k<n; k++) 
+                C[i][j] += A[i][k] * B[k][j];
+
+    return C;
+}
+
 // get_clock() from support.h in MP1
 double get_clock() {
     struct timeval tv; 
