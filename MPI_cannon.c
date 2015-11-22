@@ -37,6 +37,7 @@ int main(int argc, char* argv[]) {
     int row_num_of_procs; // num of rows should be equal to num of cols
 
     double **A, **B; // two input matrices, matrices could be non-squared
+    double **C; // the result
     int size_of_A[2], size_of_B[2];
     int size_of_A_block[2], size_of_B_block[2];
 
@@ -54,6 +55,8 @@ int main(int argc, char* argv[]) {
     }
 
     #endif
+
+    C = create_matrix(size_of_A[0], size_of_B[1]);
 
     size_of_A_block[0] = size_of_A[0] / row_num_of_procs;
     size_of_A_block[1] = size_of_A[1] / row_num_of_procs;
@@ -184,7 +187,6 @@ int main(int argc, char* argv[]) {
             );
         
 
-
         for (int i = 0; i < size_of_B_block[0]; i ++) {
             for (int j = 0; j < size_of_B_block[1]; j ++) {
                 temp_block_buffer_B[i][j] = B_block[i][j];  // copy to buffer, ready to send
@@ -226,22 +228,49 @@ int main(int argc, char* argv[]) {
         
     }   
     #ifdef DEBUG
-        // if (my_rank == 0) {
-            printf("the C block from rank %d is: \n", my_rank);
-            log_matrix(C_block, 3,3);
+        // if (my_rank == 4) {
+        //     printf("the C block from rank %d is: \n", my_rank);
+        //     log_matrix(C_block, 3,3);
         // }
+    #endif
 
-        #endif
 
+    // gather blocks from processors
+    double **temp_for_gather; // this is used to receive gathered results
+    temp_for_gather = create_matrix(num_of_procs, size_of_A_block[0] * size_of_B_block[1]);
 
-    
+    MPI_Gather(C_block[0], size_of_A_block[0] * size_of_B_block[1], MPI_DOUBLE,
+               temp_for_gather[0], size_of_A_block[0] * size_of_B_block[1], MPI_DOUBLE,
+               0, MPI_COMM_WORLD
+              );
 
-    // gather
+    // copy to C as result
+    for (int i = 0; i < num_of_procs; i ++) {
+        int start_of_row_index, start_of_col_index;
+        start_of_row_index = (i / row_num_of_procs) * size_of_A_block[0];
+        start_of_col_index = (i % row_num_of_procs) * size_of_B_block[1];
+        for (int j = 0; j < size_of_A_block[0]; j ++) {
+            for (int k = 0; k < size_of_B_block[1]; k ++) {
+                C[start_of_row_index + j][start_of_col_index + k] = temp_for_gather[i][j * size_of_B_block[1] + k];
+            }
+        }
+    }
+
+    #ifdef DEBUG
+    if (my_rank == 0) {
+            printf("the C from rank %d is: \n", my_rank);
+            log_matrix(C, 9,9);
+        }
+    #endif
 
     free_matrix(A_block);
     free_matrix(B_block);
     free_matrix(A);
     free_matrix(B);
+    free_matrix(temp_for_gather);
+    free_matrix(temp_block_buffer_A);
+    free_matrix(temp_block_buffer_B);
+
 
     MPI_Finalize();
     return 0;
