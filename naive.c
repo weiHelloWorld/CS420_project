@@ -5,26 +5,38 @@
 //
 // A[m, n] * B[n, p] = C[m, p]
 // Assumed processors are in rXc grid. 
-// Usage: mpirun -np 6 ./naive.exe m n p r c
-// Usage: mpirun -np 6 ./naive.exe 4 6 9 2 3
+// Usage: mpirun -np 6 ./naive.exe m n p r c mult_mode b
+// Usage: mpirun -np 6 ./naive.exe 4 6 9 2 3 4 20
 // Make sure r divides BOTH m AND n. 
 // Make sure c divides BOTH n AND p. 
+// Make sure b divides m AND n AND p. 
 
 #include "support.h"
 
 int main (int argc, char **argv) {
 
-    int procs, rank, m, n, p, r, c; 
+    int procs, rank, m, n, p, r, c, mult_mode, b; 
     double **A, **B, **C, **D;
     double init_time, final_time, diff_time;
-   
-    // m, n = size of full matrix
+    int log_time = 0;
+  
+    if(argc !=8 ) {
+        fprintf(stderr, "Usage: %s m n p r c mult_mode blocksize\n", argv[0]);
+        exit(0);
+    }
+
+    // m, n = size of input A matrix
+    // n, p = size of input B matrix
     // r, c = size of nprocessor matrix
+    // mult_mode = sequential multiplication type
+    // b = blocksize for loop tiling. Ignored if mult_mode!=3
     m = atoi(argv[1]);
     n = atoi(argv[2]);
     p = atoi(argv[3]);
     r = atoi(argv[4]);
     c = atoi(argv[5]);
+    mult_mode = atoi(argv[6]);
+    b = atoi(argv[7]);
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
@@ -62,8 +74,18 @@ int main (int argc, char **argv) {
         double **tempA; tempA = create_matrix(m/r, n/c);
         double **tempB; tempB = create_matrix(n/r, p/c);
         
+   
+#ifdef DEBUG
+        double t_mat_create = get_clock();
+        printf("Matrix initialization time is %lf\n", t_mat_create-init_time);
+ 
         D = create_matrix(m, p);
         D = seq_MMM(fullA, fullB, m, n, p);
+        double t_seq = get_clock();
+        printf("Sequential MMM time is %lf\n", t_seq-t_mat_create);
+
+#endif
+        
         /*
         printf("Sequential MMM gives: \n");
         log_matrix(seq_MMM(fullA, fullB, m, n, p), m, p); 
@@ -97,6 +119,7 @@ int main (int argc, char **argv) {
                 MPI_Send(&(tempB[0][0]), n*p/(r*c), MPI_DOUBLE, dest_rank, 1, MPI_COMM_WORLD);
             }
         }
+        
         free_matrix(fullA); 
         free_matrix(fullB);
         free_matrix(tempA);
@@ -106,6 +129,12 @@ int main (int argc, char **argv) {
     else {
         MPI_Recv(&(A[0][0]), m*n/(r*c), MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
         MPI_Recv(&(B[0][0]), n*p/(r*c), MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+    }
+    
+    double t_init_send, t_Arow, t_Bcol, t_Clocal, t_C;
+    if (rank==0) {
+        t_init_send = get_clock();
+        printf("Total initialization time is %lf\n", t_init_send-init_time);
     }
     
     //log_matrix(A, m/r, n/c);
@@ -133,6 +162,11 @@ int main (int argc, char **argv) {
         }
         free_matrix(tempA);
     }
+    if ((rank==0) && (log_time==1)) {
+        t_Arow = get_clock();
+        printf("Arow time is %lf\n", t_Arow-t_init_send);
+    }
+
     //printf("%d: Arow matrices built\n", rank);
     //if (rank == 0) log_matrix(Arow, m/r, n);
     //MPI_Barrier(MPI_COMM_WORLD);
@@ -153,22 +187,28 @@ int main (int argc, char **argv) {
         }
         free_matrix(tempB);
     }
+    if ((rank==0)) {
+        t_Bcol = get_clock();
+        //printf("Bcol time is %lf\n", t_Bcol-t_Arow);
+    }
     //printf("%d: Bcol matrices built\n", rank);
     //MPI_Barrier(MPI_COMM_WORLD);
     //if (rank == 0) log_matrix(Bcol, n, p/c);
     
     // Multiply Arow and Bcol to get Clocal
+    // This section will be parallelized with OpenMP 
+    // to get best utilization of shared-memory nodes
+
     double **Clocal;
     double temp=0;
     Clocal = create_matrix(m/r,p/c);
-    for(int i=0; i<m/r; i++){
-        for(int j=0; j<p/c; j++) {
-            temp = 0;
-            for (int k=0; k<n; k++) {
-                temp += Arow[i][k]*Bcol[k][j];
-            }
-            Clocal[i][j] = temp; 
-        }
+    init_zero(Clocal, m/r, p/c); 
+
+    multiply_selector(mult_mode, Arow, Bcol, Clocal, m/r, n, p/c, b); 
+    
+    if (rank==0) {
+        t_Clocal = get_clock();
+        printf("Clocal time is %lf\n", t_Clocal-t_Bcol);
     }
     //if (rank == 0) log_matrix(Clocal, m/r, p/c);
     //printf("%d: Clocal matrices built\n", rank);
@@ -197,7 +237,10 @@ int main (int argc, char **argv) {
             }
         }
         free_matrix(tempC);
-        
+        if (log_time==1) {
+            t_C = get_clock();
+            printf("C send/recv time is %lf\n", t_C-t_Clocal);
+        }
         /*
         printf("Parallel MMM output is: \n");
         log_matrix(C, m, p);
@@ -206,11 +249,12 @@ int main (int argc, char **argv) {
         
         final_time = get_clock();
         diff_time = final_time - init_time;
-        printf("[%d %d %d %d %d] Naive Running Time: %lf\n", m, n, p, r, c, diff_time);
+        printf("[%d %d %d %d %d %d %d] Naive Total Running Time: %lf\n", m, n, p, r, c, mult_mode, b, diff_time);
+#ifdef DEBUG
         compare_matrices(C, D, m, p);
-
-        free_matrix(C);
         free_matrix(D);
+#endif
+        free_matrix(C);
     }
     else {
         MPI_Send(&(Clocal[0][0]), m*p/(r*c), MPI_DOUBLE, 0, rank, MPI_COMM_WORLD);

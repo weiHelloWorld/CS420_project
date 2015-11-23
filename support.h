@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include "mkl.h"
 
 // create_matrix function is the exact same one
 // used for mp1 in mmm_basic.c
@@ -108,6 +109,7 @@ void compare_matrices (double **C, double **D, int a, int b) {
     double **E; E=create_matrix(a,b); init_zero(E, a, b);
     int count = 0;
     double epsilon = 0.000000001;
+    //double epsilon = 0.01;//different value for comparison
 
     for (int i=0; i<a; i++){
         for (int j=0; j<b; j++) {
@@ -125,6 +127,102 @@ void compare_matrices (double **C, double **D, int a, int b) {
         log_matrix(E, a, b);
     }
 }
+
+// multiply_basic is similar to seq_MMM above, however, 
+// it uses a predefined input matrix. 
+// This can be used to understand the speed differences between
+// loop tiling, unrolling, and unoptimized. 
+// This is similar to MP1 mmm_basic.c
+void multiply_basic(double **A, double **B, double **C, int m, int n, int p) {
+    for (int i=0; i<m; i++) 
+        for (int j=0; j<p; j++)
+            for (int k=0; k<n; k++)
+                C[i][j] += A[i][k] * B[k][j];
+}
+
+// multiply_basic_opt applies a basic optimization
+// compiler should be doing this anyway
+// but it's good to double check
+void multiply_basic_opt(double **A, double **B, double **C, int m, int n, int p) {
+    double temp; 
+    for (int i=0; i<m; i++) {
+        for (int j=0; j<p; j++) {
+            temp = 0;  
+            for (int k=0; k<n; k++) {
+                temp += A[i][k] * B[k][j];
+            }
+            C[i][j] = temp;
+        }
+    }
+}
+
+// multiply_urjam_2 applies 2-way loop unrolling in two directions
+// we could make this varible-way loop unrolling too
+void multiply_urjam_2(double **A, double **B, double **C, int m, int n, int p) {
+    for (int i=0; i<m; i=i+2) {
+        for (int j=0; j<p; j=j+2) {
+            for (int k=0; k<n; k++) {
+                C[i][j] += A[i][k] * B[k][j];
+                C[i+1][j] += A[i+1][k] * B[k][j];
+                C[i][j+1] += A[i][k] * B[k][j+1];
+                C[i+1][j+1] += A[i+1][k] * B[k][j+1];
+            }
+        }
+    }
+}
+
+// multiply_tiled applies loop tiling
+// note the extra input parameter b for blocksize
+void multiply_tiled(double **A, double **B, double **C, int m, int n, int p, int b) {
+    int ii,jj,kk,i, j, k;
+    double temp; 
+    
+    for(ii=0; ii<m; ii=ii+b)
+        for(jj=0; jj<p; jj=jj+b)
+            for(kk=0; kk<n; kk=kk+b)
+                for(i = 0; i < b; i++)
+                    for(j = 0; j < b; j++) {
+                        for(k = 0; k < b; k++)
+                           C[ii+i][jj+j] += A[ii+i][kk+k] * B[kk+k][jj+j];
+                    }
+}
+
+// multiply_BLAS uses the Intel MKL vendor supplied BLAS subroutines
+// to multiply two dense matrices
+// See: https://software.intel.com/en-us/node/429920
+void multiply_BLAS(double **A, double **B, double **C, int m, int n, int p) {
+    
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+            m, p, n, 1, &(A[0][0]), n, &(B[0][0]), p, 0, &(C[0][0]), p); 
+}
+
+// multiply_selector takes an integer "Multiply Mode" as input
+// and uses the corresponding sequential multiplcation algorithm
+// 0: basic unoptimzied
+// 1: basic optimized
+// 2: unroll-and-jam
+// 3: loop tiling
+// 4: BLAS/MKL highly optimized MMM
+void multiply_selector(int mult_mode,
+                       double **A, double **B, double **C, 
+                       int m, int n, int p,
+                       int b) {
+    if (mult_mode == 0)
+        multiply_basic(A, B, C, m, n, p);
+    else if (mult_mode == 1) 
+        multiply_basic_opt(A, B, C, m, n, p); 
+    else if (mult_mode == 2) 
+        multiply_urjam_2(A, B, C, m, n, p); 
+    else if (mult_mode == 3) 
+        multiply_tiled(A, B, C, m, n, p, b); 
+    else if (mult_mode == 4) 
+        multiply_BLAS(A, B, C, m, n, p); 
+    else {
+        fprintf(stderr, "Multiply_selector: Incorrect value for mult_mode. Use 0,1,2,3,4.\n");
+        exit(0);
+    }   
+}
+
 
 // get_clock() from support.h in MP1
 double get_clock() {
