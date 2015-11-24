@@ -65,13 +65,13 @@ int main(int argc, char* argv[]) {
 
     assert(size_of_A_block[1] == size_of_B_block[0]);
 
-    double **A_block, **B_block, **C_block, **temp_block_buffer_A, **temp_block_buffer_B; 
+    double **A_block, **B_block, **C_block, **temp_block_buffer_A, **temp_block_buffer_B; // these are blocks in each processors
+                                                                                        // including buffer blocks for communication
     A_block = create_matrix(size_of_A_block[0], size_of_A_block[1]);
     B_block = create_matrix(size_of_B_block[0], size_of_B_block[1]);
     C_block = create_matrix(size_of_A_block[0], size_of_B_block[1]);
 
     init_zero(C_block, size_of_A_block[0], size_of_B_block[1]); 
-
 
     temp_block_buffer_A = create_matrix(size_of_A_block[0], size_of_A_block[1]);
     temp_block_buffer_B = create_matrix(size_of_B_block[0], size_of_B_block[1]);
@@ -112,11 +112,6 @@ int main(int argc, char* argv[]) {
                         0, /* tag = 0 is for A_block */
                         MPI_COMM_WORLD
                         );
-                    #ifdef DEBUG
-                    // printf("temp_block_buffer_A = \n");
-                    // log_matrix(temp_block_buffer_A, 3, 3);
-                    assert(num_of_procs == 9);
-                    #endif
 
                     assert(size_of_A_block[0] * size_of_A_block[1] == num_of_procs);
                     // secondly, send B block to procesor
@@ -150,7 +145,6 @@ int main(int argc, char* argv[]) {
         MPI_Recv(B_block[0], 
             size_of_B_block[0] * size_of_B_block[1],
             MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, &status);
-        
     }
     // initialization ends here
     
@@ -185,7 +179,6 @@ int main(int argc, char* argv[]) {
             MPI_COMM_WORLD,
             request
             );
-        
 
         for (int i = 0; i < size_of_B_block[0]; i ++) {
             for (int j = 0; j < size_of_B_block[1]; j ++) {
@@ -270,7 +263,6 @@ int main(int argc, char* argv[]) {
     free_matrix(temp_for_gather);
     free_matrix(temp_block_buffer_A);
     free_matrix(temp_block_buffer_B);
-
 
     MPI_Finalize();
     return 0;
