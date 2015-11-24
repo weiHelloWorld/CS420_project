@@ -3,13 +3,16 @@
 // Matrix ops: create_matrix(), print_matrix(), log_matrix(), free_matrix()
 // Matrix initialization: init_zero(), init_spec(), init_rand()
 // MMM operations: seq_MMM(), compare_matrices()
+// MMM methods: multiply_selector(), multiply_basic, multiply_urjam, multiply_tiled, multiply_BLAS
+// OpenMP methods: 
 // Timing/profiling: get_clock()
 
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include "mkl.h"
+#include <mkl.h>
+#include <omp.h>
 
 // create_matrix function is the exact same one
 // used for mp1 in mmm_basic.c
@@ -223,6 +226,24 @@ void multiply_selector(int mult_mode,
     }   
 }
 
+// Multiply_omp_row splits a single MMM into multiple threads
+// this is row decomposition. 
+void multiply_omp_row (int mult_mode, 
+                       double **A, double **B, double **C, 
+                       int m, int n, int p, 
+                       int b, 
+                       int nt) {
+    
+    #pragma omp parallel
+    {
+        int t = omp_get_thread_num();
+        int nt2 = omp_get_num_threads();
+        int mystart = t*m/nt2;
+        
+        multiply_selector(mult_mode, &(A[mystart]), B, &(C[mystart]),m/nt2,n,p,b);
+        //printf("%d: Number of threads is %d\n", t, nt2);
+    }
+}
 
 // get_clock() from support.h in MP1
 double get_clock() {

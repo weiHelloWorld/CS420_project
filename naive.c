@@ -1,27 +1,30 @@
 // CS420 Project: naive.c for MMM
 // Created by Rylan Dmello on Nov 19 2015 
 //
-// Naive Algorithm for distributed MMM (does not include OpenMP yet)
+// Naive Algorithm for distributed MMM (Now includes OpenMP!)
 //
 // A[m, n] * B[n, p] = C[m, p]
 // Assumed processors are in rXc grid. 
-// Usage: mpirun -np 6 ./naive.exe m n p r c mult_mode b
-// Usage: mpirun -np 6 ./naive.exe 4 6 9 2 3 4 20
+// There are nt threads
+//
+// Usage: mpirun -np 6 ./naive.exe m n p r c mult_mode b nt
+// Usage: mpirun -np 6 ./naive.exe 4 6 9 2 3 4 0 1
 // Make sure r divides BOTH m AND n. 
 // Make sure c divides BOTH n AND p. 
-// Make sure b divides m AND n AND p. 
+// Make sure b divides m/r AND n AND p/c. 
+// Make sure nt divides m/r AND p/c. 
 
 #include "support.h"
 
 int main (int argc, char **argv) {
 
-    int procs, rank, m, n, p, r, c, mult_mode, b; 
+    int procs, rank, m, n, p, r, c, mult_mode, b, nt; 
     double **A, **B, **C, **D;
     double init_time, final_time, diff_time;
     int log_time = 0;
   
-    if(argc !=8 ) {
-        fprintf(stderr, "Usage: %s m n p r c mult_mode blocksize\n", argv[0]);
+    if(argc !=9 ) {
+        fprintf(stderr, "Usage: %s m n p r c mult_mode b nt\n", argv[0]);
         exit(0);
     }
 
@@ -37,10 +40,22 @@ int main (int argc, char **argv) {
     c = atoi(argv[5]);
     mult_mode = atoi(argv[6]);
     b = atoi(argv[7]);
+    nt = atoi(argv[8]);
+    
+    omp_set_num_threads(nt);
 
-    MPI_Init(&argc, &argv);
+    int required = 2; //MPI_THREAD_FUNNELED
+    /* MPI_THREAD_FUNNELED: Only main thread makes MPI calls
+     * From testing, it seems like we can go upto MPI_THREAD_SERIALIZED
+     * but not MPI_THREAD_MULTIPLE.
+     */
+    int provided; 
+
+
+    MPI_Init_thread(&argc, &argv, required, &provided);
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank); 
+    //printf("MPI Support is %d\n", provided);
     
     // The 2D Cart_create and split algorithm is from the
     // MPI Calls lecture on Fri, Oct 9. See the wiki for details
@@ -60,7 +75,7 @@ int main (int argc, char **argv) {
 
     //printf("%d: (%d, %d)\n", rank, row, col);
 
-    if(rank==0) init_time = get_clock();
+    if (rank == 0) init_time = get_clock();
     // Now we have to distribute 1 matrix from rank 0 to all the ranks
     A = create_matrix(m/r, n/c);
     B = create_matrix(n/r, p/c);
@@ -204,7 +219,8 @@ int main (int argc, char **argv) {
     Clocal = create_matrix(m/r,p/c);
     init_zero(Clocal, m/r, p/c); 
 
-    multiply_selector(mult_mode, Arow, Bcol, Clocal, m/r, n, p/c, b); 
+    //multiply_selector(mult_mode, Arow, Bcol, Clocal, m/r, n, p/c, b); 
+    multiply_omp_row(mult_mode, Arow, Bcol, Clocal, m/r, n, p/c, b, nt); 
     
     if (rank==0) {
         t_Clocal = get_clock();
@@ -246,7 +262,6 @@ int main (int argc, char **argv) {
         log_matrix(C, m, p);
         printf("End parallel MMM output. \n");
         */
-        
         final_time = get_clock();
         diff_time = final_time - init_time;
         printf("[%d %d %d %d %d %d %d] Naive Total Running Time: %lf\n", m, n, p, r, c, mult_mode, b, diff_time);
