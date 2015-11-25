@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>   
-#include "support.h"
+#include "temp_support_weichen9.h"
 
 #define DEBUG
 
@@ -42,14 +42,15 @@ int main(int argc, char* argv[]) {
     int size_of_A_block[2], size_of_B_block[2];
 
     #ifdef DEBUG
-    A = create_matrix(9, 9);
-    B = create_matrix(9, 9);
-    init_spec(A, 9, 9);
-    init_spec(B, 9, 9);
+
     size_of_A[0] = 9; size_of_A[1] = 9;
     size_of_B[0] = 9; size_of_B[1] = 9;
     row_num_of_procs = 3;
     if (my_rank == 0) {
+        A = create_matrix(9, 9);
+        B = create_matrix(9, 9);
+        init_spec(A, 9, 9);
+        init_spec(B, 9, 9);
         my_print_matrix("matrix_A.txt", A, 9, 9);
         my_print_matrix("matrix_B.txt", B, 9, 9);
     }
@@ -258,11 +259,15 @@ int main(int argc, char* argv[]) {
 
     free_matrix(A_block);
     free_matrix(B_block);
-    free_matrix(A);
-    free_matrix(B);
+    
     free_matrix(temp_for_gather);
     free_matrix(temp_block_buffer_A);
     free_matrix(temp_block_buffer_B);
+
+    if (my_rank == 0) {
+        free_matrix(A);
+        free_matrix(B);
+    }
 
     MPI_Finalize();
     return 0;
