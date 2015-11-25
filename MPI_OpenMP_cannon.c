@@ -33,6 +33,8 @@ void my_print_matrix (char* filename, double **mat, int m, int n) {
 
 int main(int argc, char* argv[]) {
     MPI_Status status;
+    MPI_Request request[2];
+
     int my_rank, num_of_procs;
 
     int required = MPI_THREAD_FUNNELED; // MPI funcs are called by master thread
@@ -79,6 +81,8 @@ int main(int argc, char* argv[]) {
     A_row = create_matrix(size_of_A_block[0], size_of_A[1]);
     B_row = create_matrix(size_of_B_block[0], size_of_B[1]);
     C_row = create_matrix(size_of_A_block[0], size_of_B[1]);
+
+    init_zero(C_row, size_of_A_block[0], size_of_B[1]);
 
     temp_buffer_A_row = create_matrix(size_of_A_block[0], size_of_A[1]);
     temp_buffer_B_row = create_matrix(size_of_B_block[0], size_of_B[1]);
@@ -152,20 +156,78 @@ int main(int argc, char* argv[]) {
     }
 
 #ifdef DEBUG
-    if (my_rank == 2) {
-        printf("the A row from rank %d is: \n", my_rank);
-        log_matrix(A_row, 3,9);
-        printf("the B row from rank %d is: \n", my_rank);
-        log_matrix(B_row, 3,9);
-    }
-    
+    // if (my_rank == 2) {
+    //     printf("the A row from rank %d is: \n", my_rank);
+    //     log_matrix(A_row, 3,9);
+    //     printf("the B row from rank %d is: \n", my_rank);
+    //     log_matrix(B_row, 3,9);
+    // }
 #endif
 
     // multiply and shifting
-    
+    omp_set_num_threads(row_num_of_procs);
+    for (int iteration = 0; iteration < row_num_of_procs; iteration ++) {
+        // multiply
+        #pragma omp parallel 
+        {
+            int my_thread_index;
+            my_thread_index = omp_get_thread_num();
+            for (int i = 0; i < size_of_A_block[0]; i ++) {
+                for (int j = 0; j < size_of_A_block[1]; j ++) {
+                    for (int k = 0; k < size_of_A_block[1]; k ++) {
+                        C_row[i][my_thread_index * size_of_B_block[1] + j] 
+                            += A_row[i][( (my_rank + my_thread_index + iteration) % row_num_of_procs) * size_of_A_block[1] + k]
+                            * B_row[k][my_thread_index * size_of_B_block[1] + j];    
+                            /* here we do shifting in A by adding an offset to column index */
+                    }
+                }
+            }
+        }
+        // shifting B
+        for (int i = 0; i < size_of_B_block[0]; i ++) {
+            for (int j = 0; j < size_of_B[1]; j ++) {
+                temp_buffer_B_row[i][j] = B_row[i][j];
+            }
+        }
+
+        MPI_Isend(temp_buffer_B_row[0], 
+                size_of_B_block[0] * size_of_B[1], 
+                MPI_DOUBLE, 
+                (my_rank + row_num_of_procs - 1) % row_num_of_procs,
+                1, 
+                MPI_COMM_WORLD,
+                request
+                );
+        MPI_Irecv(B_row[0],
+            size_of_B_block[0] * size_of_B[1], 
+            MPI_DOUBLE,
+            (my_rank + 1) % row_num_of_procs,
+            1,
+            MPI_COMM_WORLD,
+            request + 1
+            );
+        MPI_Waitall(2, request, MPI_STATUS_IGNORE);
+        #ifdef DEBUG
+        // if (my_rank == 0) {
+        //         printf("iteration %d: the B_row from rank %d is: \n", iteration, my_rank);
+        //         log_matrix(B_row, 3,9);
+        //     }
+        #endif
+    }
 
     // gather
 
+    MPI_Gather(C_row[0], size_of_A_block[0] * size_of_B[1], MPI_DOUBLE,
+               C[0], size_of_A_block[0] * size_of_B[1], MPI_DOUBLE,
+               0, MPI_COMM_WORLD
+              );
+
+    #ifdef DEBUG
+    if (my_rank == 0) {
+            printf("the C from rank %d is: \n", my_rank);
+            log_matrix(C, 9,9);
+        }
+    #endif
 
     free_matrix(A_row);
     free_matrix(B_row);

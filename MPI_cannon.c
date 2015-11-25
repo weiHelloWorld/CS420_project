@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
                 temp_block_buffer_A[i][j] = A_block[i][j];  // copy to buffer, ready to send
             }   
         }
-        int destination_rank = my_rank % row_num_of_procs == 0 ? my_rank + row_num_of_procs - 1 : my_rank - 1;
+        int destination_rank = (my_rank + row_num_of_procs - 1) % row_num_of_procs;
         MPI_Isend(temp_block_buffer_A[0], 
             size_of_A_block[0] * size_of_A_block[1], 
             MPI_DOUBLE,
