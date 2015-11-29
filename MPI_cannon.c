@@ -7,14 +7,14 @@
 //
 // Usage: 
 
-// Make sure r divides BOTH m, n, p
+// Make sure r divides m, n, p
 
 
 #include "mpi.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>   
-#include "temp_support_weichen9.h"
+#include "support.h"
 
 #define DEBUG
 
@@ -41,6 +41,7 @@ int main (int argc, char** argv) {
     MPI_Status status;
     MPI_Request request[4];
     int my_rank, num_of_procs;
+    double init_time, final_time, diff_time;
 
     if(argc != 5 ) {
         fprintf(stderr, "Usage: %s m n p r \n", argv[0]);
@@ -64,6 +65,7 @@ int main (int argc, char** argv) {
 
     double **A, **B; // two input matrices, matrices could be non-squared
     double **C; // the result
+    double **D; // correct result from sequential version
     int size_of_A[2], size_of_B[2];
     int size_of_A_block[2], size_of_B_block[2];
 
@@ -77,7 +79,10 @@ int main (int argc, char** argv) {
         B = create_matrix(size_of_B[0], size_of_B[1]);
         init_spec(A, size_of_A[0], size_of_A[1]);
         init_spec(B, size_of_B[0], size_of_B[1]);
+        D = create_matrix(size_of_A[0], size_of_B[1]);
+        D = seq_MMM(A, B, size_of_A[0], size_of_A[1], size_of_B[1]); // this is the correct result
     }
+
 
 
     C = create_matrix(size_of_A[0], size_of_B[1]);
@@ -100,11 +105,12 @@ int main (int argc, char** argv) {
     temp_block_buffer_A = create_matrix(size_of_A_block[0], size_of_A_block[1]);
     temp_block_buffer_B = create_matrix(size_of_B_block[0], size_of_B_block[1]);
 
-
     
 
 
     // initialization, partition into blocks and send to destination process
+    if (my_rank == 0) init_time = get_clock(); // start timer
+
     if (my_rank == 0) {
         for (int i = 0; i < row_num_of_procs; i ++) {
             for (int j = 0; j < row_num_of_procs; j ++) {
@@ -274,10 +280,17 @@ int main (int argc, char** argv) {
 
     #ifdef DEBUG
     if (my_rank == 0) {
-            printf("the C from rank %d is: \n", my_rank);
-            log_matrix(C, size_of_A[0], size_of_B[1]);
+            compare_matrices(C, D, size_of_A[0], size_of_B[1]);
         }
     #endif
+
+    if (my_rank == 0) {
+        final_time = get_clock();
+        diff_time = final_time - init_time;
+        printf("[%d %d %d %d] MPI_cannon Total Running Time: %lf\n", m, n, p, r, diff_time);
+    }
+    
+
 
     free_matrix(A_block);
     free_matrix(B_block);
@@ -289,6 +302,8 @@ int main (int argc, char** argv) {
     if (my_rank == 0) {
         free_matrix(A);
         free_matrix(B);
+        free_matrix(C);
+        free_matrix(D);
     }
 
     MPI_Finalize();
