@@ -1,3 +1,15 @@
+// CS420 Project: MPI_cannon.c for MMM
+// Created by Wei Chen on Nov 17 2015 
+//
+// Cannon's algorithm for MMM
+
+// Assumed processors are in rXr grid. 
+//
+// Usage: 
+
+// Make sure r divides BOTH m, n, p
+
+
 #include "mpi.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,10 +37,24 @@ void my_print_matrix (char* filename, double **mat, int m, int n) {
     fclose(fp);
 }
 
-int main(int argc, char* argv[]) {
+int main (int argc, char** argv) {
     MPI_Status status;
     MPI_Request request[4];
     int my_rank, num_of_procs;
+
+    if(argc != 5 ) {
+        fprintf(stderr, "Usage: %s m n p r \n", argv[0]);
+        exit(0);
+    }
+
+    int m, n, p, r;
+    // m, n = size of input A matrix
+    // n, p = size of input B matrix
+    // r = size of nprocessor matrix (num of rows should be equal to num of columns)
+    m = atoi(argv[1]);
+    n = atoi(argv[2]);
+    p = atoi(argv[3]);
+    r = atoi(argv[4]);
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -41,21 +67,18 @@ int main(int argc, char* argv[]) {
     int size_of_A[2], size_of_B[2];
     int size_of_A_block[2], size_of_B_block[2];
 
-    #ifdef DEBUG
+    // for rank 0: get the input of the two matrices 
 
-    size_of_A[0] = 9; size_of_A[1] = 9;
-    size_of_B[0] = 9; size_of_B[1] = 9;
-    row_num_of_procs = 3;
+    size_of_A[0] = m; size_of_A[1] = n;
+    size_of_B[0] = n; size_of_B[1] = p;
+    row_num_of_procs = r;
     if (my_rank == 0) {
-        A = create_matrix(9, 9);
-        B = create_matrix(9, 9);
-        init_spec(A, 9, 9);
-        init_spec(B, 9, 9);
-        my_print_matrix("matrix_A.txt", A, 9, 9);
-        my_print_matrix("matrix_B.txt", B, 9, 9);
+        A = create_matrix(size_of_A[0], size_of_A[1]);
+        B = create_matrix(size_of_B[0], size_of_B[1]);
+        init_spec(A, size_of_A[0], size_of_A[1]);
+        init_spec(B, size_of_B[0], size_of_B[1]);
     }
 
-    #endif
 
     C = create_matrix(size_of_A[0], size_of_B[1]);
 
@@ -78,7 +101,7 @@ int main(int argc, char* argv[]) {
     temp_block_buffer_B = create_matrix(size_of_B_block[0], size_of_B_block[1]);
 
 
-    // for rank 0: get the input of the two matrices (maybe from files)
+    
 
 
     // initialization, partition into blocks and send to destination process
@@ -114,7 +137,6 @@ int main(int argc, char* argv[]) {
                         MPI_COMM_WORLD
                         );
 
-                    assert(size_of_A_block[0] * size_of_A_block[1] == num_of_procs);
                     // secondly, send B block to procesor
                     // ((i - j + row_num_of_procs) % row_num_of_procs, j)
                     for (int ii = i * size_of_B_block[0]; ii < (i+1) * size_of_B_block[0]; ii ++) {
@@ -171,7 +193,7 @@ int main(int argc, char* argv[]) {
                 temp_block_buffer_A[i][j] = A_block[i][j];  // copy to buffer, ready to send
             }   
         }
-        int destination_rank = (my_rank + row_num_of_procs - 1) % row_num_of_procs;
+        int destination_rank = my_rank % row_num_of_procs == 0 ? my_rank + row_num_of_procs - 1 : my_rank - 1;
         MPI_Isend(temp_block_buffer_A[0], 
             size_of_A_block[0] * size_of_A_block[1], 
             MPI_DOUBLE,
@@ -253,7 +275,7 @@ int main(int argc, char* argv[]) {
     #ifdef DEBUG
     if (my_rank == 0) {
             printf("the C from rank %d is: \n", my_rank);
-            log_matrix(C, 9,9);
+            log_matrix(C, size_of_A[0], size_of_B[1]);
         }
     #endif
 
