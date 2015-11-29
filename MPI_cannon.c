@@ -36,6 +36,7 @@ int main (int argc, char** argv) {
     // r = size of nprocessor matrix (num of rows should be equal to num of columns)
     // mult_mode = sequential multiplication type
     // b = blocksize for loop tiling. Ignored if mult_mode!=3
+    // nt = number of threads
     m = atoi(argv[1]);
     n = atoi(argv[2]);
     p = atoi(argv[3]);
@@ -173,6 +174,7 @@ int main (int argc, char** argv) {
     // shifting and calculate
     for (int index_of_stages = 0; index_of_stages < row_num_of_procs; index_of_stages ++) { // (row_num_of_procs) is equal to the number of stages
         // do multiplication in each stage
+        init_zero(temp_C_block, size_of_A_block[0], size_of_B_block[1]);  // there would be some problems without this initialization
         multiply_omp_row(mult_mode, A_block, B_block, temp_C_block, 
                     size_of_A_block[0], size_of_A_block[1], size_of_B_block[1], 
                     b, nt);
@@ -266,17 +268,21 @@ int main (int argc, char** argv) {
         }
     }
 
-    #ifdef DEBUG
-    if (my_rank == 0) {
-            compare_matrices(C, D, size_of_A[0], size_of_B[1]);
-        }
-    #endif
+    
 
     if (my_rank == 0) {
         final_time = get_clock();
         diff_time = final_time - init_time;
         printf("[%d %d %d %d] MPI_cannon Total Running Time: %lf\n", m, n, p, r, diff_time);
     }
+
+    #ifdef DEBUG
+    if (my_rank == 0) {
+            compare_matrices(C, D, size_of_A[0], size_of_B[1]);
+            // printf("C from rank %d is: \n", my_rank);
+            // log_matrix(C, size_of_A[0], size_of_B[1]);
+        }
+    #endif
     
 
 
