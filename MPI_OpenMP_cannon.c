@@ -7,29 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>   
-#include "temp_support_weichen9.h"
+#include "support.h"
 
 #define DEBUG
-
-void my_print_matrix (char* filename, double **mat, int m, int n) {
-    FILE* fp;
-    int i, j;
-
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-        fprintf(stderr, "Unable to write the file %s\n", filename);
-        exit(1);
-    }
-
-    for (i=0; i<m; i++) {
-        for (j=0; j<n; j++) {
-            fprintf(fp, "%lf\t", mat[i][j]);
-        }
-        fprintf(fp, "\n");
-    }
-    fclose(fp);
-}
-
 
 int main(int argc, char* argv[]) {
     MPI_Status status;

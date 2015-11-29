@@ -18,24 +18,6 @@
 
 #define DEBUG
 
-void my_print_matrix (char* filename, double **mat, int m, int n) {
-    FILE* fp;
-    int i, j;
-
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-        fprintf(stderr, "Unable to write the file %s\n", filename);
-        exit(1);
-    }
-
-    for (i=0; i<m; i++) {
-        for (j=0; j<n; j++) {
-            fprintf(fp, "%lf\t", mat[i][j]);
-        }
-        fprintf(fp, "\n");
-    }
-    fclose(fp);
-}
 
 int main (int argc, char** argv) {
     MPI_Status status;
@@ -43,21 +25,29 @@ int main (int argc, char** argv) {
     int my_rank, num_of_procs;
     double init_time, final_time, diff_time;
 
-    if(argc != 5 ) {
-        fprintf(stderr, "Usage: %s m n p r \n", argv[0]);
+    if(argc != 8 ) {
+        fprintf(stderr, "Usage: %s m n p r mult_mode b nt \n", argv[0]);
         exit(0);
     }
 
-    int m, n, p, r;
+    int m, n, p, r, mult_mode, b, nt;
     // m, n = size of input A matrix
     // n, p = size of input B matrix
     // r = size of nprocessor matrix (num of rows should be equal to num of columns)
+    // mult_mode = sequential multiplication type
+    // b = blocksize for loop tiling. Ignored if mult_mode!=3
     m = atoi(argv[1]);
     n = atoi(argv[2]);
     p = atoi(argv[3]);
     r = atoi(argv[4]);
+    mult_mode = atoi(argv[5]);
+    b = atoi(argv[6]);
+    nt = atoi(argv[7]);
 
-    MPI_Init(&argc, &argv);
+    int required = MPI_THREAD_FUNNELED; // MPI funcs are called by master thread
+    int provided;
+
+    MPI_Init_thread(&argc, &argv, required, &provided);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_of_procs); 
 
@@ -84,7 +74,6 @@ int main (int argc, char** argv) {
     }
 
 
-
     C = create_matrix(size_of_A[0], size_of_B[1]);
 
     size_of_A_block[0] = size_of_A[0] / row_num_of_procs;
@@ -94,19 +83,17 @@ int main (int argc, char** argv) {
 
     assert(size_of_A_block[1] == size_of_B_block[0]);
 
-    double **A_block, **B_block, **C_block, **temp_block_buffer_A, **temp_block_buffer_B; // these are blocks in each processors
+    double **A_block, **B_block, **C_block, **temp_C_block, **temp_block_buffer_A, **temp_block_buffer_B; // these are blocks in each processors
                                                                                         // including buffer blocks for communication
     A_block = create_matrix(size_of_A_block[0], size_of_A_block[1]);
     B_block = create_matrix(size_of_B_block[0], size_of_B_block[1]);
     C_block = create_matrix(size_of_A_block[0], size_of_B_block[1]);
+    temp_C_block = create_matrix(size_of_A_block[0], size_of_B_block[1]);
 
     init_zero(C_block, size_of_A_block[0], size_of_B_block[1]); 
 
     temp_block_buffer_A = create_matrix(size_of_A_block[0], size_of_A_block[1]);
     temp_block_buffer_B = create_matrix(size_of_B_block[0], size_of_B_block[1]);
-
-    
-
 
     // initialization, partition into blocks and send to destination process
     if (my_rank == 0) init_time = get_clock(); // start timer
@@ -186,11 +173,12 @@ int main (int argc, char** argv) {
     // shifting and calculate
     for (int index_of_stages = 0; index_of_stages < row_num_of_procs; index_of_stages ++) { // (row_num_of_procs) is equal to the number of stages
         // do multiplication in each stage
+        multiply_omp_row(mult_mode, A_block, B_block, temp_C_block, 
+                    size_of_A_block[0], size_of_A_block[1], size_of_B_block[1], 
+                    b, nt);
         for (int i = 0; i < size_of_A_block[0]; i ++) {
-            for (int j = 0; j < size_of_A_block[1]; j ++) {
-                for (int k = 0; k < size_of_B_block[1]; k ++) {
-                    C_block[i][k] += A_block[i][j] * B_block[j][k];
-                }
+            for (int k = 0; k < size_of_B_block[1]; k ++) {
+                C_block[i][k] += temp_C_block[i][k];
             }
         }
         // do shifting after calculation
