@@ -1,14 +1,18 @@
 // CS420 Project: MPI_cannon.c for MMM
 // Created by Wei Chen on Nov 17 2015 
 //
-// Cannon's algorithm for MMM
+// MPI implementation of Cannon's algorithm for MMM
 
 // Assumed processors are in rXr grid. 
 //
-// Usage: 
+// Usage: mpirun -np r^2 ./MPI_cannon.exe m n p r mult_mode b nt
+// Usage: mpirun -np 9 ./MPI_cannon.exe 12 12 9 3 4 0 1
 
-// Make sure r divides m, n, p
-
+// Make sure:
+// 1. r divides m, n, p
+// 2. number of processors are r^2
+// 3. b divides m/r AND n AND p/c
+// 4. nt divides m/r AND p/c
 
 #include "mpi.h"
 #include <stdio.h>
@@ -268,12 +272,10 @@ int main (int argc, char** argv) {
         }
     }
 
-    
-
     if (my_rank == 0) {
         final_time = get_clock();
         diff_time = final_time - init_time;
-        printf("[%d %d %d %d] MPI_cannon Total Running Time: %lf\n", m, n, p, r, diff_time);
+        printf("[%d %d %d %d %d %d %d] MPI_cannon Total Running Time: %lf\n", m, n, p, r, mult_mode, b, nt, diff_time);
     }
 
     #ifdef DEBUG
