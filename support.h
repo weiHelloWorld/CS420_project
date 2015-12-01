@@ -15,6 +15,8 @@
 #include <omp.h>
 #include <assert.h>   
 
+#define DEBUG
+
 
 // create_matrix function is the exact same one
 // used for mp1 in mmm_basic.c
@@ -139,6 +141,11 @@ void compare_matrices (double **C, double **D, int a, int b) {
 // loop tiling, unrolling, and unoptimized. 
 // This is similar to MP1 mmm_basic.c
 void multiply_basic(double **A, double **B, double **C, int m, int n, int p) {
+    #ifdef DEBUG
+    log_matrix(A, m, n);
+    printf("m = %d, n = %d, p = %d\n", m, n, p);
+    #endif
+    
     for (int i=0; i<m; i++) 
         for (int j=0; j<p; j++)
             for (int k=0; k<n; k++)
@@ -150,6 +157,7 @@ void multiply_basic(double **A, double **B, double **C, int m, int n, int p) {
 // but it's good to double check
 void multiply_basic_opt(double **A, double **B, double **C, int m, int n, int p) {
     double temp; 
+    
     for (int i=0; i<m; i++) {
         for (int j=0; j<p; j++) {
             temp = 0;  
@@ -166,6 +174,11 @@ void multiply_basic_opt(double **A, double **B, double **C, int m, int n, int p)
 void multiply_urjam_2(double **A, double **B, double **C, int m, int n, int p) {
     assert(m % 2 == 0);
     assert(n % 2 == 0);
+    #ifdef DEBUG
+    // printf("in urjam: A is: \n");
+    log_matrix(A, m, n);
+    printf("m = %d, n = %d, p = %d\n", m, n, p);
+    #endif
     for (int i=0; i<m; i=i+2) {
         for (int j=0; j<p; j=j+2) {
             for (int k=0; k<n; k++) {

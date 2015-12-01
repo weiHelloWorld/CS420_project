@@ -15,6 +15,7 @@
 // Make sure nt divides m/r AND p/c. 
 
 #include "support.h"
+#define DEBUG
 
 int main (int argc, char **argv) {
 
@@ -268,6 +269,8 @@ int main (int argc, char **argv) {
 #ifdef DEBUG
         compare_matrices(C, D, m, p);
         free_matrix(D);
+        printf("C is: \n");
+        log_matrix(C, m, p);
 #endif
         free_matrix(C);
     }

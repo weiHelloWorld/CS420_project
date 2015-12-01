@@ -49,6 +49,8 @@ int main (int argc, char** argv) {
     b = atoi(argv[6]);
     nt = atoi(argv[7]);
 
+    omp_set_num_threads(nt);
+
     int required = MPI_THREAD_FUNNELED; // MPI funcs are called by master thread
     int provided;
 
@@ -69,6 +71,7 @@ int main (int argc, char** argv) {
     size_of_A[0] = m; size_of_A[1] = n;
     size_of_B[0] = n; size_of_B[1] = p;
     row_num_of_procs = r;
+
     if (my_rank == 0) {
         A = create_matrix(size_of_A[0], size_of_A[1]);
         B = create_matrix(size_of_B[0], size_of_B[1]);
@@ -179,9 +182,14 @@ int main (int argc, char** argv) {
     for (int index_of_stages = 0; index_of_stages < row_num_of_procs; index_of_stages ++) { // (row_num_of_procs) is equal to the number of stages
         // do multiplication in each stage
         init_zero(temp_C_block, size_of_A_block[0], size_of_B_block[1]);  // there would be some problems without this initialization
+
         multiply_omp_row(mult_mode, A_block, B_block, temp_C_block, 
                     size_of_A_block[0], size_of_A_block[1], size_of_B_block[1], 
                     b, nt);
+        #ifdef DEBUG
+        // printf("temp_C_block from rank %d is: \n", my_rank);
+        // log_matrix(temp_C_block, size_of_A_block[0], size_of_B_block[1]);
+        #endif
         for (int i = 0; i < size_of_A_block[0]; i ++) {
             for (int k = 0; k < size_of_B_block[1]; k ++) {
                 C_block[i][k] += temp_C_block[i][k];
@@ -281,8 +289,8 @@ int main (int argc, char** argv) {
     #ifdef DEBUG
     if (my_rank == 0) {
             compare_matrices(C, D, size_of_A[0], size_of_B[1]);
-            // printf("C from rank %d is: \n", my_rank);
-            // log_matrix(C, size_of_A[0], size_of_B[1]);
+            printf("C from rank %d is: \n", my_rank);
+            log_matrix(C, size_of_A[0], size_of_B[1]);
         }
     #endif
     
