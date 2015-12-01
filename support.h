@@ -15,7 +15,7 @@
 #include <omp.h>
 #include <assert.h>   
 
-#define DEBUG
+// #define DEBUG
 
 
 // create_matrix function is the exact same one
@@ -142,10 +142,10 @@ void compare_matrices (double **C, double **D, int a, int b) {
 // This is similar to MP1 mmm_basic.c
 void multiply_basic(double **A, double **B, double **C, int m, int n, int p) {
     #ifdef DEBUG
-    log_matrix(A, m, n);
+    // log_matrix(A, m, n);
     printf("m = %d, n = %d, p = %d\n", m, n, p);
     #endif
-    
+
     for (int i=0; i<m; i++) 
         for (int j=0; j<p; j++)
             for (int k=0; k<n; k++)
@@ -176,7 +176,7 @@ void multiply_urjam_2(double **A, double **B, double **C, int m, int n, int p) {
     assert(n % 2 == 0);
     #ifdef DEBUG
     // printf("in urjam: A is: \n");
-    log_matrix(A, m, n);
+    // log_matrix(A, m, n);
     printf("m = %d, n = %d, p = %d\n", m, n, p);
     #endif
     for (int i=0; i<m; i=i+2) {

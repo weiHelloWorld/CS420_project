@@ -15,7 +15,7 @@
 // Make sure nt divides m/r AND p/c. 
 
 #include "support.h"
-#define DEBUG
+// #define DEBUG
 
 int main (int argc, char **argv) {
 

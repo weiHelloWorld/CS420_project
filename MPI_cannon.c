@@ -289,8 +289,8 @@ int main (int argc, char** argv) {
     #ifdef DEBUG
     if (my_rank == 0) {
             compare_matrices(C, D, size_of_A[0], size_of_B[1]);
-            printf("C from rank %d is: \n", my_rank);
-            log_matrix(C, size_of_A[0], size_of_B[1]);
+            // printf("C from rank %d is: \n", my_rank);
+            // log_matrix(C, size_of_A[0], size_of_B[1]);
         }
     #endif
     
