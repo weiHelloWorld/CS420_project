@@ -13,6 +13,8 @@
 #include <sys/time.h>
 #include <mkl.h>
 #include <omp.h>
+#include <assert.h>   
+
 
 // create_matrix function is the exact same one
 // used for mp1 in mmm_basic.c
@@ -162,6 +164,8 @@ void multiply_basic_opt(double **A, double **B, double **C, int m, int n, int p)
 // multiply_urjam_2 applies 2-way loop unrolling in two directions
 // we could make this varible-way loop unrolling too
 void multiply_urjam_2(double **A, double **B, double **C, int m, int n, int p) {
+    assert(m % 2 == 0);
+    assert(n % 2 == 0);
     for (int i=0; i<m; i=i+2) {
         for (int j=0; j<p; j=j+2) {
             for (int k=0; k<n; k++) {

@@ -8,7 +8,7 @@ EXE=$(SRC:.c=.exe)
 
 all: $(EXE)
 
-%.exe: %.c
+%.exe: %.c support.h
 	$(CC) $(CCFLAGS) $< -o $@
 
 clean: 
