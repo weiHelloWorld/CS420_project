@@ -88,6 +88,15 @@ int main (int argc, char** argv) {
     size_of_A_block[1] = size_of_A[1] / row_num_of_procs;
     size_of_B_block[0] = size_of_B[0] / row_num_of_procs;
     size_of_B_block[1] = size_of_B[1] / row_num_of_procs;
+    #ifdef DEBUG
+    if(my_rank == 0) {
+        printf("size_of_A_block[0] = %d\n", size_of_A_block[0]);
+        printf("size_of_A_block[1] = %d\n", size_of_A_block[1]);
+        printf("size_of_B_block[0] = %d\n", size_of_B_block[0]);
+        printf("size_of_B_block[1] = %d\n", size_of_B_block[1]);
+    }
+    
+    #endif
 
     assert(size_of_A_block[1] == size_of_B_block[0]);
 
@@ -130,14 +139,20 @@ int main (int argc, char** argv) {
                             temp_block_buffer_A[ii - i * size_of_A_block[0]][jj - j * size_of_A_block[1]] = A[ii][jj];
                         }
                     }
-                    MPI_Send(&(temp_block_buffer_A[0][0]), 
+
+                    #ifdef DEBUG
+                    printf("initialization: send A block {%d, %d} to processor %d\n", 
+                        i, j, i * row_num_of_procs + ((j - i + row_num_of_procs) % row_num_of_procs));
+                    #endif
+                    MPI_Isend(temp_block_buffer_A[0], 
                         size_of_A_block[0] * size_of_A_block[1], 
                         MPI_DOUBLE, 
                         i * row_num_of_procs + ((j - i + row_num_of_procs) % row_num_of_procs),
                         0, /* tag = 0 is for A_block */
-                        MPI_COMM_WORLD
+                        MPI_COMM_WORLD,
+                        request
                         );
-
+                
                     // secondly, send B block to procesor
                     // ((i - j + row_num_of_procs) % row_num_of_procs, j)
                     for (int ii = i * size_of_B_block[0]; ii < (i+1) * size_of_B_block[0]; ii ++) {
@@ -145,30 +160,38 @@ int main (int argc, char** argv) {
                             temp_block_buffer_B[ii - i * size_of_B_block[0]][jj - j * size_of_B_block[1]] = B[ii][jj];
                         }
                     }
-                    MPI_Send(temp_block_buffer_B[0], 
+                    #ifdef DEBUG
+                    printf("initialization: send B block {%d, %d} to processor %d\n", 
+                        i, j, ((i - j + row_num_of_procs) % row_num_of_procs) * row_num_of_procs + j);
+                    #endif
+                    MPI_Isend(temp_block_buffer_B[0], 
                         size_of_B_block[0] * size_of_B_block[1], 
                         MPI_DOUBLE, 
                         ((i - j + row_num_of_procs) % row_num_of_procs) * row_num_of_procs + j,
                         1, /* tag = 1 is for B_block */
-                        MPI_COMM_WORLD
+                        MPI_COMM_WORLD,
+                        request + 1
                         );
+                    MPI_Waitall(2, request, MPI_STATUS_IGNORE);
                 }
             }
         }       
     }
     else { // receive block from rank 0 and store into A_block, B_block
-        MPI_Recv(A_block[0], 
+        MPI_Irecv(A_block[0], 
             size_of_A_block[0] * size_of_A_block[1],
-            MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);
-        int count;
-        MPI_Get_count(&status, MPI_DOUBLE, &count);
-        assert(size_of_A_block[0] * size_of_A_block[1] == count);
-        assert(status.MPI_SOURCE == 0);
-        assert(status.MPI_TAG == 0);
+            MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, request);
+        #ifdef DEBUG
+        printf("initialization: received A block from processor 0, my_rank = %d\n", my_rank);
+        #endif
 
-        MPI_Recv(B_block[0], 
+        MPI_Irecv(B_block[0], 
             size_of_B_block[0] * size_of_B_block[1],
-            MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, &status);
+            MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, request + 1);
+        #ifdef DEBUG
+        printf("initialization: received B block from processor 0, my_rank = %d\n", my_rank);
+        #endif
+        MPI_Waitall(2, request, MPI_STATUS_IGNORE);
     }
     // initialization ends here
     

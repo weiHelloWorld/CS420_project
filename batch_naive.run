@@ -6,6 +6,7 @@
 #PBS -j oe
 
 # Move to the current directory
+module load intel/15.0 # temp, to be deleted
 cd $PBS_O_WORKDIR
 lscpu >> out_naive.txt
 echo " " >> out_naive.txt
