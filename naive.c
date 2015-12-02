@@ -265,7 +265,7 @@ int main (int argc, char **argv) {
         */
         final_time = get_clock();
         diff_time = final_time - init_time;
-        printf("[%d %d %d %d %d %d %d] Naive Total Running Time: %lf\n", m, n, p, r, c, mult_mode, b, diff_time);
+        printf("[%d %d %d %d %d %d %d %d] Naive Total Running Time: %lf\n", m, n, p, r, c, mult_mode, b, nt, diff_time);
 #ifdef DEBUG
         compare_matrices(C, D, m, p);
         free_matrix(D);
