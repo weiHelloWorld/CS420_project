@@ -20,7 +20,7 @@
 #include <assert.h>   
 #include "support.h"
 
-#define DEBUG
+// #define DEBUG
 
 
 int main (int argc, char** argv) {
@@ -78,11 +78,11 @@ int main (int argc, char** argv) {
         init_spec(A, size_of_A[0], size_of_A[1]);
         init_spec(B, size_of_B[0], size_of_B[1]);
         D = create_matrix(size_of_A[0], size_of_B[1]);
+        #ifdef DEBUG
         D = seq_MMM(A, B, size_of_A[0], size_of_A[1], size_of_B[1]); // this is the correct result
-    }
-
-
-    C = create_matrix(size_of_A[0], size_of_B[1]);
+        #endif
+        C = create_matrix(size_of_A[0], size_of_B[1]);
+    }    
 
     size_of_A_block[0] = size_of_A[0] / row_num_of_procs;
     size_of_A_block[1] = size_of_A[1] / row_num_of_procs;
@@ -200,7 +200,6 @@ int main (int argc, char** argv) {
         // log_matrix(A_block, 3,3);
     #endif
 
-
     // shifting and calculate
     for (int index_of_stages = 0; index_of_stages < row_num_of_procs; index_of_stages ++) { // (row_num_of_procs) is equal to the number of stages
         // do multiplication in each stage
@@ -275,7 +274,6 @@ int main (int argc, char** argv) {
             request + 3
             );
         MPI_Waitall(4, request, MPI_STATUS_IGNORE);
-
         
     }   
     #ifdef DEBUG
@@ -284,7 +282,6 @@ int main (int argc, char** argv) {
         //     log_matrix(C_block, 3,3);
         // }
     #endif
-
 
     // gather blocks from processors
     double **temp_for_gather; // this is used to receive gathered results
@@ -296,18 +293,19 @@ int main (int argc, char** argv) {
               );
 
     // copy to C as result
-    for (int i = 0; i < num_of_procs; i ++) {
-        int start_of_row_index, start_of_col_index;
-        start_of_row_index = (i / row_num_of_procs) * size_of_A_block[0];
-        start_of_col_index = (i % row_num_of_procs) * size_of_B_block[1];
-        for (int j = 0; j < size_of_A_block[0]; j ++) {
-            for (int k = 0; k < size_of_B_block[1]; k ++) {
-                C[start_of_row_index + j][start_of_col_index + k] = temp_for_gather[i][j * size_of_B_block[1] + k];
-            }
-        }
-    }
 
     if (my_rank == 0) {
+        for (int i = 0; i < num_of_procs; i ++) {
+            int start_of_row_index, start_of_col_index;
+            start_of_row_index = (i / row_num_of_procs) * size_of_A_block[0];
+            start_of_col_index = (i % row_num_of_procs) * size_of_B_block[1];
+            for (int j = 0; j < size_of_A_block[0]; j ++) {
+                for (int k = 0; k < size_of_B_block[1]; k ++) {
+                    C[start_of_row_index + j][start_of_col_index + k] = temp_for_gather[i][j * size_of_B_block[1] + k];
+                }
+            }
+        }
+        
         final_time = get_clock();
         total_time = final_time - init_time;
         printf("[%d %d %d %d %d %d %d] MPI_cannon Total Running Time: %lf\n", m, n, p, r, mult_mode, b, nt, total_time);
@@ -317,11 +315,8 @@ int main (int argc, char** argv) {
     #ifdef DEBUG
     if (my_rank == 0) {
             compare_matrices(C, D, size_of_A[0], size_of_B[1]);
-            // printf("C from rank %d is: \n", my_rank);
-            // log_matrix(C, size_of_A[0], size_of_B[1]);
         }
     #endif
-    
 
 
     free_matrix(A_block);
