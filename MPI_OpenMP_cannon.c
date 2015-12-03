@@ -9,13 +9,19 @@
 #include <assert.h>   
 #include "support.h"
 
-#define DEBUG
+// #define DEBUG
 
 int main(int argc, char* argv[]) {
     MPI_Status status;
     MPI_Request request[2];
 
     int my_rank, num_of_procs;
+    double init_time, final_time, total_time, computation_time = 0, comp_start, comp_end;
+
+    if(argc != 7) {
+        fprintf(stderr, "Usage: %s m n p r mult_mode b \n", argv[0]);
+        exit(0);
+    }
 
     int m, n, p, r, mult_mode, b;
     // m, n = size of input A matrix
@@ -80,6 +86,8 @@ int main(int argc, char* argv[]) {
 
     temp_buffer_A_row = create_matrix(size_of_A_block[0], size_of_A[1]);
     temp_buffer_B_row = create_matrix(size_of_B_block[0], size_of_B[1]);
+
+    init_time = get_clock();
 
     // initialization: send blocks to specific row in specific processor
     // for A, simply copy the whole row of blocks into specific processor
@@ -149,23 +157,24 @@ int main(int argc, char* argv[]) {
             MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, &status);
     }
 
-#ifdef DEBUG
-    // if (my_rank == 2) {
-    //     printf("the A row from rank %d is: \n", my_rank);
-    //     log_matrix(A_row, 3,9);
-    //     printf("the B row from rank %d is: \n", my_rank);
-    //     log_matrix(B_row, 3,9);
-    // }
-#endif
+    #ifdef DEBUG
+    if (my_rank == 0) {
+        printf("here2\n");    
+    }
+    #endif
+
 
     // multiply and shifting
     omp_set_num_threads(row_num_of_procs);
     for (int iteration = 0; iteration < row_num_of_procs; iteration ++) {
         // multiply
+        comp_start = get_clock();
+
         #pragma omp parallel 
         {
             int my_thread_index;
             my_thread_index = omp_get_thread_num();
+            
             for (int i = 0; i < size_of_A_block[0]; i ++) {
                 for (int j = 0; j < size_of_A_block[1]; j ++) {
                     for (int k = 0; k < size_of_A_block[1]; k ++) {
@@ -175,8 +184,10 @@ int main(int argc, char* argv[]) {
                             /* here we do shifting in A by adding an offset to column index */
                     }
                 }
-            }
+            }   
         }
+        comp_end = get_clock();
+        computation_time += (comp_end - comp_start);
         // shifting B
         for (int i = 0; i < size_of_B_block[0]; i ++) {
             for (int j = 0; j < size_of_B[1]; j ++) {
@@ -201,12 +212,6 @@ int main(int argc, char* argv[]) {
             request + 1
             );
         MPI_Waitall(2, request, MPI_STATUS_IGNORE);
-        #ifdef DEBUG
-        // if (my_rank == 0) {
-        //         printf("iteration %d: the B_row from rank %d is: \n", iteration, my_rank);
-        //         log_matrix(B_row, 3,9);
-        //     }
-        #endif
     }
 
     // gather
@@ -215,6 +220,14 @@ int main(int argc, char* argv[]) {
                C[0], size_of_A_block[0] * size_of_B[1], MPI_DOUBLE,
                0, MPI_COMM_WORLD
               );
+
+    if (my_rank == 0) {
+        final_time = get_clock();
+        total_time = final_time - init_time;
+        printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Running Time: %lf\n", m, n, p, r, mult_mode, b,  total_time);
+        // printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Computation Time: %lf\n", m, n, p, r, mult_mode, b,  computation_time);
+    }
+    
 
     #ifdef DEBUG
     if (my_rank == 0) {
