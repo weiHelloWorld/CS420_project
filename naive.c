@@ -81,8 +81,6 @@ int main (int argc, char **argv) {
     A = create_matrix(m/r, n/c);
     B = create_matrix(n/r, p/c);
 
-    if (rank == 0) init_time = get_clock();
-    
     if (rank == 0) {
         // The full matrix is created only on Rank 0
 
@@ -104,6 +102,9 @@ int main (int argc, char **argv) {
         printf("Sequential MMM time is %lf\n", t_seq-t_mat_create);
 #endif
         
+        // Moved timer to point after buffer blocks are initialized    
+        init_time = get_clock();
+
         /*
         printf("Sequential MMM gives: \n");
         log_matrix(seq_MMM(fullA, fullB, m, n, p), m, p); 
