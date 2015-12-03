@@ -12,14 +12,30 @@ module load intel/15.0
 cd $PBS_O_WORKDIR
 
 out_file_name="out_MPI_cannon.txt"
+exec_program="./MPI_cannon.exe"
 
 lscpu >> ${out_file_name}
 echo " " >> ${out_file_name}
 
 # Square matrices of increasing size and constant nodes
+echo "------------------------------------------" >> ${out_file_name}
+echo "variable sizes" >> ${out_file_name}
+echo "------------------------------------------" >> ${out_file_name}
 for size in {1000..10000..1000}
 do
-    echo "Running MPI_cannon.exe with size=${size}" >> ${out_file_name}
-    mpirun -np 4 ./MPI_cannon.exe ${size} ${size} ${size} 2 4 1 2 >> ${out_file_name}
+    echo "Running ${exec_program} with size=${size}" >> ${out_file_name}
+    mpirun -np 4 ${exec_program} ${size} ${size} ${size} 2 4 1 2 >> ${out_file_name}
+    echo " " >> ${out_file_name}
+done
+
+size=6000
+echo "------------------------------------------" >> ${out_file_name}
+echo "variable nodes" >> ${out_file_name}
+echo "------------------------------------------" >> ${out_file_name}
+
+for nodes in 1 2 3
+do
+    echo "Running ${exec_program} with nodes=${nodes}" >> ${out_file_name}
+    mpirun -np $((nodes*nodes)) ${exec_program} ${size} ${size} ${size} ${nodes} 4 1 1 >> ${out_file_name}
     echo " " >> ${out_file_name}
 done
