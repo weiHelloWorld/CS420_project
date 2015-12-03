@@ -13,3 +13,4 @@ all: $(EXE)
 
 clean: 
 	rm -f *.o $(EXE) verify.txt
+

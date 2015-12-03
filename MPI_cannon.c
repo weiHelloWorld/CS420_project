@@ -27,7 +27,7 @@ int main (int argc, char** argv) {
     MPI_Status status;
     MPI_Request request[4];
     int my_rank, num_of_procs;
-    double init_time, final_time, diff_time;
+    double init_time, final_time, total_time, computation_time = 0, comp_start, comp_end;
 
     if(argc != 8 ) {
         fprintf(stderr, "Usage: %s m n p r mult_mode b nt \n", argv[0]);
@@ -89,12 +89,12 @@ int main (int argc, char** argv) {
     size_of_B_block[0] = size_of_B[0] / row_num_of_procs;
     size_of_B_block[1] = size_of_B[1] / row_num_of_procs;
     #ifdef DEBUG
-    if(my_rank == 0) {
-        printf("size_of_A_block[0] = %d\n", size_of_A_block[0]);
-        printf("size_of_A_block[1] = %d\n", size_of_A_block[1]);
-        printf("size_of_B_block[0] = %d\n", size_of_B_block[0]);
-        printf("size_of_B_block[1] = %d\n", size_of_B_block[1]);
-    }
+    // if(my_rank == 0) {
+    //     printf("size_of_A_block[0] = %d\n", size_of_A_block[0]);
+    //     printf("size_of_A_block[1] = %d\n", size_of_A_block[1]);
+    //     printf("size_of_B_block[0] = %d\n", size_of_B_block[0]);
+    //     printf("size_of_B_block[1] = %d\n", size_of_B_block[1]);
+    // }
     
     #endif
 
@@ -141,8 +141,8 @@ int main (int argc, char** argv) {
                     }
 
                     #ifdef DEBUG
-                    printf("initialization: send A block {%d, %d} to processor %d\n", 
-                        i, j, i * row_num_of_procs + ((j - i + row_num_of_procs) % row_num_of_procs));
+                    // printf("initialization: send A block {%d, %d} to processor %d\n", 
+                    //     i, j, i * row_num_of_procs + ((j - i + row_num_of_procs) % row_num_of_procs));
                     #endif
                     MPI_Isend(temp_block_buffer_A[0], 
                         size_of_A_block[0] * size_of_A_block[1], 
@@ -161,8 +161,8 @@ int main (int argc, char** argv) {
                         }
                     }
                     #ifdef DEBUG
-                    printf("initialization: send B block {%d, %d} to processor %d\n", 
-                        i, j, ((i - j + row_num_of_procs) % row_num_of_procs) * row_num_of_procs + j);
+                    // printf("initialization: send B block {%d, %d} to processor %d\n", 
+                    //     i, j, ((i - j + row_num_of_procs) % row_num_of_procs) * row_num_of_procs + j);
                     #endif
                     MPI_Isend(temp_block_buffer_B[0], 
                         size_of_B_block[0] * size_of_B_block[1], 
@@ -182,14 +182,14 @@ int main (int argc, char** argv) {
             size_of_A_block[0] * size_of_A_block[1],
             MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, request);
         #ifdef DEBUG
-        printf("initialization: received A block from processor 0, my_rank = %d\n", my_rank);
+        // printf("initialization: received A block from processor 0, my_rank = %d\n", my_rank);
         #endif
 
         MPI_Irecv(B_block[0], 
             size_of_B_block[0] * size_of_B_block[1],
             MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, request + 1);
         #ifdef DEBUG
-        printf("initialization: received B block from processor 0, my_rank = %d\n", my_rank);
+        // printf("initialization: received B block from processor 0, my_rank = %d\n", my_rank);
         #endif
         MPI_Waitall(2, request, MPI_STATUS_IGNORE);
     }
@@ -206,9 +206,13 @@ int main (int argc, char** argv) {
         // do multiplication in each stage
         init_zero(temp_C_block, size_of_A_block[0], size_of_B_block[1]);  // there would be some problems without this initialization
 
+        comp_start = get_clock();
         multiply_omp_row(mult_mode, A_block, B_block, temp_C_block, 
                     size_of_A_block[0], size_of_A_block[1], size_of_B_block[1], 
                     b, nt);
+        comp_end = get_clock();
+        computation_time += (comp_end - comp_start);
+
         #ifdef DEBUG
         // printf("temp_C_block from rank %d is: \n", my_rank);
         // log_matrix(temp_C_block, size_of_A_block[0], size_of_B_block[1]);
@@ -305,8 +309,9 @@ int main (int argc, char** argv) {
 
     if (my_rank == 0) {
         final_time = get_clock();
-        diff_time = final_time - init_time;
-        printf("[%d %d %d %d %d %d %d] MPI_cannon Total Running Time: %lf\n", m, n, p, r, mult_mode, b, nt, diff_time);
+        total_time = final_time - init_time;
+        printf("[%d %d %d %d %d %d %d] MPI_cannon Total Running Time: %lf\n", m, n, p, r, mult_mode, b, nt, total_time);
+        printf("[%d %d %d %d %d %d %d] MPI_cannon Total Computation Time: %lf\n", m, n, p, r, mult_mode, b, nt, computation_time);
     }
 
     #ifdef DEBUG
