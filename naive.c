@@ -4,11 +4,11 @@
 // Naive Algorithm for distributed MMM (Now includes OpenMP!)
 //
 // A[m, n] * B[n, p] = C[m, p]
-// Assumed processors are in rXc grid. 
+// Assumed processors are in rXr grid. 
 // There are nt threads
 //
-// Usage: mpirun -np 6 ./naive.exe m n p r c mult_mode b nt
-// Usage: mpirun -np 6 ./naive.exe 4 6 9 2 3 4 0 1
+// Usage: mpirun -np 4 ./naive.exe m n p r mult_mode b nt
+// Usage: mpirun -np 4 ./naive.exe 4 6 8 2 4 0 1
 // Make sure r divides BOTH m AND n. 
 // Make sure c divides BOTH n AND p. 
 // Make sure b divides m/r AND n AND p/c. 
@@ -21,28 +21,29 @@ int main (int argc, char **argv) {
 
     int procs, rank, m, n, p, r, c, mult_mode, b, nt; 
     double **A, **B, **C, **D;
-    double init_time, final_time, diff_time;
+    double init_time, final_time, diff_time, comp_time;
     int log_time = 0;
   
-    if(argc !=9 ) {
-        fprintf(stderr, "Usage: %s m n p r c mult_mode b nt\n", argv[0]);
+    if(argc !=8 ) {
+        fprintf(stderr, "Usage: %s m n p r mult_mode b nt\n", argv[0]);
         exit(0);
     }
 
     // m, n = size of input A matrix
     // n, p = size of input B matrix
-    // r, c = size of nprocessor matrix
+    // r = number of rows in processor grid
     // mult_mode = sequential multiplication type
     // b = blocksize for loop tiling. Ignored if mult_mode!=3
     m = atoi(argv[1]);
     n = atoi(argv[2]);
     p = atoi(argv[3]);
     r = atoi(argv[4]);
-    c = atoi(argv[5]);
-    mult_mode = atoi(argv[6]);
-    b = atoi(argv[7]);
-    nt = atoi(argv[8]);
-    
+    // c = atoi(argv[5]);
+    mult_mode = atoi(argv[5]);
+    b = atoi(argv[6]);
+    nt = atoi(argv[7]);
+    c = r;
+
     omp_set_num_threads(nt);
 
     int required = 2; //MPI_THREAD_FUNNELED
@@ -101,7 +102,6 @@ int main (int argc, char **argv) {
         D = seq_MMM(fullA, fullB, m, n, p);
         double t_seq = get_clock();
         printf("Sequential MMM time is %lf\n", t_seq-t_mat_create);
-
 #endif
         
         /*
@@ -150,10 +150,8 @@ int main (int argc, char **argv) {
     }
     
     double t_init_send, t_Arow, t_Bcol, t_Clocal, t_C;
-    if (rank==0) {
-        t_init_send = get_clock();
-        printf("Total initialization time is %lf\n", t_init_send-init_time);
-    }
+    t_init_send = get_clock();
+    //printf("Total initialization time is %lf\n", t_init_send-init_time);
     
     //log_matrix(A, m/r, n/c);
     //log_matrix(B, n/r, p/c);
@@ -205,10 +203,7 @@ int main (int argc, char **argv) {
         }
         free_matrix(tempB);
     }
-    if ((rank==0)) {
-        t_Bcol = get_clock();
-        //printf("Bcol time is %lf\n", t_Bcol-t_Arow);
-    }
+    //printf("Bcol time is %lf\n", t_Bcol-t_Arow);
     //printf("%d: Bcol matrices built\n", rank);
     //MPI_Barrier(MPI_COMM_WORLD);
     //if (rank == 0) log_matrix(Bcol, n, p/c);
@@ -222,13 +217,12 @@ int main (int argc, char **argv) {
     Clocal = create_matrix(m/r,p/c);
     init_zero(Clocal, m/r, p/c); 
 
-    //multiply_selector(mult_mode, Arow, Bcol, Clocal, m/r, n, p/c, b); 
+    t_Bcol = get_clock();
     multiply_omp_row(mult_mode, Arow, Bcol, Clocal, m/r, n, p/c, b, nt); 
     
-    if (rank==0) {
-        t_Clocal = get_clock();
-        printf("Clocal time is %lf\n", t_Clocal-t_Bcol);
-    }
+    t_Clocal = get_clock();
+    comp_time = t_Clocal-t_Bcol;
+    //printf("Clocal time is %lf\n", t_Clocal-t_Bcol);
     //if (rank == 0) log_matrix(Clocal, m/r, p/c);
     //printf("%d: Clocal matrices built\n", rank);
     //MPI_Barrier(MPI_COMM_WORLD);
@@ -267,7 +261,8 @@ int main (int argc, char **argv) {
         */
         final_time = get_clock();
         diff_time = final_time - init_time;
-        printf("[%d %d %d %d %d %d %d %d] Naive Total Running Time: %lf\n", m, n, p, r, c, mult_mode, b, nt, diff_time);
+        printf("[%d %d %d %d %d %d %d] Naive Total Running Time: %lf\n", m, n, p, r, mult_mode, b, nt, diff_time);
+        printf("[%d %d %d %d %d %d %d] Naive Total Computation Time: %lf\n", m, n, p, r, mult_mode, b, nt, comp_time);
 #ifdef DEBUG
         compare_matrices(C, D, m, p);
         free_matrix(D);

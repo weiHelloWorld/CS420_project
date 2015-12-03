@@ -6,30 +6,38 @@
 #PBS -j oe
 
 # Move to the current directory
-module load intel/15.0 # temp, to be deleted
+
+module load intel/15.0
+
 cd $PBS_O_WORKDIR
-lscpu >> out_naive.txt
-echo " " >> out_naive.txt
+
+out_file_name="out_naive.txt"
+exec_program="./naive.exe"
+
+lscpu >> ${out_file_name}
+echo " " >> ${out_file_name}
 
 # Square matrices of increasing size and constant nodes
-for size in 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000
+echo "------------------------------------------" >> ${out_file_name}
+echo "variable sizes" >> ${out_file_name}
+echo "------------------------------------------" >> ${out_file_name}
+for size in {1000..10000..1000}
 do
-    echo "Running naive.exe with size=${size}" >> out_naive.txt
-    mpirun -np 5 ./naive.exe ${size} ${size} ${size} 1 5 4 10 2 >> out_naive.txt
-    echo " " >> out_naive.txt
+    echo "Running ${exec_program} with size=${size}" >> ${out_file_name}
+    mpirun -np 4 ${exec_program} ${size} ${size} ${size} 2 4 1 2 >> ${out_file_name}
+    echo " " >> ${out_file_name}
 done
 
-size=12000
-echo "----- NOW RUNNING VARIABLE NODES -----" >> out_naive.txt
-# Square matrices of constant size and increasing nodes
-for nodes in 1 2 3
+size=6000
+echo "------------------------------------------" >> ${out_file_name}
+echo "variable nodes" >> ${out_file_name}
+echo "------------------------------------------" >> ${out_file_name}
+
+for nodes in 1 2 3 
 do
-    echo "Running naive.exe with size=${size}" >> out_naive.txt
-    mpirun -np $((nodes*nodes)) ./naive.exe ${size} ${size} ${size} ${nodes} ${nodes} 4 10 1 >> out_naive.txt
-    echo " " >> out_naive.txt
+    echo "Running ${exec_program} with nodes=${nodes}" >> ${out_file_name}
+    mpirun -np $((nodes*nodes)) ${exec_program} ${size} ${size} ${size} ${nodes} 4 1 1 >> ${out_file_name}
+    echo " " >> ${out_file_name}
 done
 
-# Notes
-# We really should ask the TAs what options to use here
-# We might need to run on Taub/Golub/Xeon Phi specifically
-# There might be a maximum number of nodes too
+

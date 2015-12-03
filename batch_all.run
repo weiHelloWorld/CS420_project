@@ -1,0 +1,68 @@
+#!/bin/bash
+#PBS -q secondary
+#PBS -l walltime=00:20:00
+#PBS -l nodes=1:ppn=12:taub
+#PBS -N project_cs420
+#PBS -j oe
+
+# Move to the current directory
+module load intel/15.0 # temp, to be deleted
+cd $PBS_O_WORKDIR
+
+# List of programs to be run
+programs="MPI_cannon naive"
+
+for program in $programs
+do
+    out_file_name="out_$program.txt"
+    exec_program="./$program.exe"
+    lscpu >> ${out_file_name}
+    echo " " >> ${out_file_name}
+
+    # Matrix Size Test: Increasing size with const. threads and ranks
+    # Takes approx. 2.5 mins in total for each program
+    echo "------------------------------------------" >> ${out_file_name}
+    echo "$program variable sizes" >> ${out_file_name}
+    echo "------------------------------------------" >> ${out_file_name}
+
+    for size in {3000..15000..3000}
+    do
+        echo "Running $exec_program with size=${size}" >> ${out_file_name}
+        mpirun -np 9 ${exec_program} ${size} ${size} ${size} 3 4 1 1 >> ${out_file_name}
+        echo " " >> ${out_file_name}
+    done
+
+    # Square matrices of constant size and increasing ranks
+    # Takes approx. 1 min in total for each program
+    size=6000
+    echo "------------------------------------------" >> ${out_file_name}
+    echo "$program variable ranks" >> ${out_file_name}
+    echo "------------------------------------------" >> ${out_file_name}
+
+    for ranks in 1 2 3
+    do
+        echo "Running ${exec_program} with ranks=${ranks}" >> ${out_file_name}
+        mpirun -np $((ranks*ranks)) ${exec_program} ${size} ${size} ${size} ${ranks} 4 1 1 >> ${out_file_name}
+        echo " " >> ${out_file_name}
+    done
+
+    # OpenMP Testing: Increasing number of threads 
+    # Takes approx. 1 min in total for each program
+    size=6000
+    echo "------------------------------------------" >> ${out_file_name}
+    echo "$program variable threads" >> ${out_file_name}
+    echo "------------------------------------------" >> ${out_file_name}
+
+    for threads in 1 2 3 4 5 6 10 12
+    do
+        echo "Running ${exec_program} with threads=${threads}" >> ${out_file_name}
+        mpirun -np 1 ${exec_program} ${size} ${size} ${size} 1 4 1 ${threads} >> ${out_file_name}
+        echo " " >> ${out_file_name}
+    done
+
+done
+
+# Notes
+# Try multi-node cases, which may show interesting results for large
+# matrix sizes
+
