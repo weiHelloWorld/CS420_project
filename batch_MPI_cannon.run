@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -q secondary
-#PBS -l walltime=00:20:00
+#PBS -l walltime=00:30:00
 #PBS -l nodes=1:ppn=12:taub
 #PBS -N project_cs420
 #PBS -j oe
@@ -10,13 +10,16 @@
 module load intel/15.0
 
 cd $PBS_O_WORKDIR
-lscpu >> out_MPI_cannon.txt
-echo " " >> out_MPI_cannon.txt
+
+out_file_name="out_MPI_cannon_"$(date +%s)".txt"
+
+lscpu >> ${out_file_name}
+echo " " >> ${out_file_name}
 
 # Square matrices of increasing size and constant nodes
-for size in 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000
+for size in  5000 6000 7000 8000 9000 10000 1000 2000 3000 4000
 do
-    echo "Running MPI_cannon.exe with size=${size}" >> out_MPI_cannon.txt
-    mpirun -np 4 ./MPI_cannon.exe ${size} ${size} ${size} 2 4 1 1 >> out_MPI_cannon.txt
-    echo " " >> out_MPI_cannon.txt
+    echo "Running MPI_cannon.exe with size=${size}" >> ${out_file_name}
+    mpirun -np 4 ./MPI_cannon.exe ${size} ${size} ${size} 2 0 1 1 >> ${out_file_name}
+    echo " " >> ${out_file_name}
 done

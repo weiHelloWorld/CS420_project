@@ -76,10 +76,12 @@ int main (int argc, char **argv) {
 
     //printf("%d: (%d, %d)\n", rank, row, col);
 
-    if (rank == 0) init_time = get_clock();
     // Now we have to distribute 1 matrix from rank 0 to all the ranks
     A = create_matrix(m/r, n/c);
     B = create_matrix(n/r, p/c);
+
+    if (rank == 0) init_time = get_clock();
+    
     if (rank == 0) {
         // The full matrix is created only on Rank 0
 
