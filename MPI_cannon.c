@@ -77,8 +77,8 @@ int main (int argc, char** argv) {
         B = create_matrix(size_of_B[0], size_of_B[1]);
         init_spec(A, size_of_A[0], size_of_A[1]);
         init_spec(B, size_of_B[0], size_of_B[1]);
-        D = create_matrix(size_of_A[0], size_of_B[1]);
         #ifdef DEBUG
+        D = create_matrix(size_of_A[0], size_of_B[1]);
         D = seq_MMM(A, B, size_of_A[0], size_of_A[1], size_of_B[1]); // this is the correct result
         #endif
         C = create_matrix(size_of_A[0], size_of_B[1]);
@@ -330,7 +330,9 @@ int main (int argc, char** argv) {
         free_matrix(A);
         free_matrix(B);
         free_matrix(C);
+        #ifdef DEBUG
         free_matrix(D);
+        #endif
     }
 
     MPI_Finalize();

@@ -17,6 +17,19 @@ int main(int argc, char* argv[]) {
 
     int my_rank, num_of_procs;
 
+    int m, n, p, r, mult_mode, b;
+    // m, n = size of input A matrix
+    // n, p = size of input B matrix
+    // r = size of nprocessor matrix (num of rows should be equal to num of columns)
+    // mult_mode = sequential multiplication type
+    // b = blocksize for loop tiling. Ignored if mult_mode!=3
+    m = atoi(argv[1]);
+    n = atoi(argv[2]);
+    p = atoi(argv[3]);
+    r = atoi(argv[4]);
+    mult_mode = atoi(argv[5]);
+    b = atoi(argv[6]);
+
     int required = MPI_THREAD_FUNNELED; // MPI funcs are called by master thread
     int provided;
 
@@ -28,26 +41,27 @@ int main(int argc, char* argv[]) {
 
     double **A, **B; // two input matrices, matrices could be non-squared
     double **C; // the result
+    double **D;
     int size_of_A[2], size_of_B[2];
     int size_of_A_block[2], size_of_B_block[2];
 
-    #ifdef DEBUG
-    
-    size_of_A[0] = 9; size_of_A[1] = 9;
-    size_of_B[0] = 9; size_of_B[1] = 9;
-    row_num_of_procs = 3;
+    // for rank 0: get the input of the two matrices 
+
+    size_of_A[0] = m; size_of_A[1] = n;
+    size_of_B[0] = n; size_of_B[1] = p;
+    row_num_of_procs = r;
+
     if (my_rank == 0) {
-        A = create_matrix(9, 9);
-        B = create_matrix(9, 9);
-        init_spec(A, 9, 9);
-        init_spec(B, 9, 9);
-        my_print_matrix("matrix_A.txt", A, 9, 9);
-        my_print_matrix("matrix_B.txt", B, 9, 9);
-    }
-
-    #endif
-
-    C = create_matrix(size_of_A[0], size_of_B[1]);
+        A = create_matrix(size_of_A[0], size_of_A[1]);
+        B = create_matrix(size_of_B[0], size_of_B[1]);
+        init_spec(A, size_of_A[0], size_of_A[1]);
+        init_spec(B, size_of_B[0], size_of_B[1]);
+        #ifdef DEBUG
+        D = create_matrix(size_of_A[0], size_of_B[1]);
+        D = seq_MMM(A, B, size_of_A[0], size_of_A[1], size_of_B[1]); // this is the correct result
+        #endif
+        C = create_matrix(size_of_A[0], size_of_B[1]);
+    }    
 
     size_of_A_block[0] = size_of_A[0] / row_num_of_procs;
     size_of_A_block[1] = size_of_A[1] / row_num_of_procs;
@@ -204,14 +218,22 @@ int main(int argc, char* argv[]) {
 
     #ifdef DEBUG
     if (my_rank == 0) {
-            printf("the C from rank %d is: \n", my_rank);
-            log_matrix(C, 9,9);
-        }
+        compare_matrices(C, D, size_of_A[0], size_of_B[1]);
+    }
     #endif
 
     free_matrix(A_row);
     free_matrix(B_row);
     free_matrix(C_row);
+
+    if (my_rank == 0) {
+        free_matrix(A);
+        free_matrix(B);
+        free_matrix(C);
+        #ifdef DEBUG
+        free_matrix(D);
+        #endif
+    }
 
     MPI_Finalize();
     return 0;
