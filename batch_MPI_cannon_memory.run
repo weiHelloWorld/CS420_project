@@ -26,7 +26,7 @@ hst="-hostfile /tmp/${USER}_NODEFILE"
 vg="valgrind --tool=massif"
 
 # List of programs to be run
-programs="MPI_cannon naive"
+programs="MPI_cannon"
 
 for program in $programs
 do
@@ -70,20 +70,20 @@ do
 
     # OpenMP Testing: Increasing number of threads 
     # Takes approx. 6 min in total for each program
-    size=15000
-    echo "------------------------------------------" >> ${out_file_name}
-    echo "$program variable threads" >> ${out_file_name}
-    echo "------------------------------------------" >> ${out_file_name}
+    # size=15000
+    # echo "------------------------------------------" >> ${out_file_name}
+    # echo "$program variable threads" >> ${out_file_name}
+    # echo "------------------------------------------" >> ${out_file_name}
 
-    for threads in 10 12 20
-    do
-        echo "Running ${exec_program} with threads=${threads}" >> ${out_file_name}
-        export OMP_NUM_THREADS=${threads}
-        rm ./massif.out.*
-        mpirun -np 1 ${hst} ${vg} ${exec_program} ${size} ${size} ${size} 1 4 1 ${threads} >> ${out_file_name}
-        valgrind_result >> ${out_file_name}
-        echo " " >> ${out_file_name}
-    done
+    # for threads in 10 12 20
+    # do
+    #     echo "Running ${exec_program} with threads=${threads}" >> ${out_file_name}
+    #     export OMP_NUM_THREADS=${threads}
+    #     rm ./massif.out.*
+    #     mpirun -np 1 ${hst} ${vg} ${exec_program} ${size} ${size} ${size} 1 4 1 ${threads} >> ${out_file_name}
+    #     valgrind_result >> ${out_file_name}
+    #     echo " " >> ${out_file_name}
+    # done
 
     # Hybrid OpenMP/MPI Testing: Increasing number of threads while decreasing ranks 
     # Takes approx. 12 min in total for each program
@@ -92,10 +92,12 @@ do
     echo "$program Hybrid OpenMP/MPI Test" >> ${out_file_name}
     echo "------------------------------------------" >> ${out_file_name}
 
-    threads_list=(12 12 5 4 3 2 1 1)
-    ranks_row_list=(1 2 3 3 4 5 5 6)
+    # threads_list=(12 12 5 4 3 2 1 1)
+    threads_list=(12 5 4 3 2 1 1)
+    # ranks_row_list=(1 2 3 3 4 5 5 6)
+    ranks_row_list=(2 3 3 4 5 5 6)
 
-    for i in {0..7}
+    for i in {0..6}
     do
         threads=${threads_list[$i]}
         ranks=${ranks_row_list[$i]}
