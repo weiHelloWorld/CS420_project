@@ -111,5 +111,7 @@ do
 
 done
 
+rm ./massif.out.*
+
 # Notes
 
