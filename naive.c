@@ -179,6 +179,7 @@ int main (int argc, char **argv) {
         }
         free_matrix(tempA);
     }
+    free_matrix(A);
     if ((rank==0) && (log_time==1)) {
         t_Arow = get_clock();
         printf("Arow time is %lf\n", t_Arow-t_init_send);
@@ -204,6 +205,7 @@ int main (int argc, char **argv) {
         }
         free_matrix(tempB);
     }
+    free_matrix(B);
     //printf("Bcol time is %lf\n", t_Bcol-t_Arow);
     //printf("%d: Bcol matrices built\n", rank);
     //MPI_Barrier(MPI_COMM_WORLD);
@@ -274,8 +276,6 @@ int main (int argc, char **argv) {
         MPI_Send(&(Clocal[0][0]), m*p/(r*c), MPI_DOUBLE, 0, rank, MPI_COMM_WORLD);
     }
 
-    free_matrix(A);
-    free_matrix(B); 
     free_matrix(Arow);
     free_matrix(Bcol);
     free_matrix(Clocal);
