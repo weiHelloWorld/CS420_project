@@ -1,7 +1,23 @@
+// CS420 Project: MPI_OpenMP_cannon.c for MMM
+// Created by Wei Chen on Nov 17 2015 
+//
+// hybrid implementation of Cannon's algorithm for MMM
+
+// Assumed processors are in rXr grid. 
+//
+// Usage: mpirun -np r ./MPI_OpenMP_cannon.exe m n p r mult_mode b
+// Usage: mpirun -np 3 ./MPI_OpenMP_cannon.exe 12 12 9 3 4 1
+
+// Make sure:
+// 1. r divides m, n, p
+// 2. number of processors are r
+// 3. b divides m/r AND n AND p/c
+
 // divide matrices A and B into n^2 blocks, the blocks in the same row are in the same processor, 
 // but in different threads, the blocks in different rows are in different processors
 // inputs: matrices A and B, number of row (which is the number of processors and also the number of 
 // threads in each processor)
+
 
 #include "mpi.h"
 #include <stdio.h>
@@ -16,7 +32,7 @@ int main(int argc, char* argv[]) {
     MPI_Request request[2];
 
     int my_rank, num_of_procs;
-    double init_time, final_time, total_time, computation_time = 0, comp_start, comp_end;
+    double init_time, final_time, total_time, comp_time = 0, comp_start, comp_end;
 
     if(argc != 7) {
         fprintf(stderr, "Usage: %s m n p r mult_mode b \n", argv[0]);
@@ -187,7 +203,8 @@ int main(int argc, char* argv[]) {
             }   
         }
         comp_end = get_clock();
-        computation_time += (comp_end - comp_start);
+        printf("comp_time = %lf\n", comp_time);
+        comp_time += (comp_end - comp_start);
         // shifting B
         for (int i = 0; i < size_of_B_block[0]; i ++) {
             for (int j = 0; j < size_of_B[1]; j ++) {
@@ -224,8 +241,8 @@ int main(int argc, char* argv[]) {
     if (my_rank == 0) {
         final_time = get_clock();
         total_time = final_time - init_time;
-        printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Running Time: %lf\n", m, n, p, r, mult_mode, b,  total_time);
-        // printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Computation Time: %lf\n", m, n, p, r, mult_mode, b,  computation_time);
+        printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Running Time: %lf\n", m, n, p, r, mult_mode, b, total_time);
+        
     }
     
 

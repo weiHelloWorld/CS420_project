@@ -192,8 +192,14 @@ int main (int argc, char** argv) {
         // printf("initialization: received B block from processor 0, my_rank = %d\n", my_rank);
         #endif
         MPI_Waitall(2, request, MPI_STATUS_IGNORE);
+        free_matrix(temp_block_buffer_A);
+        free_matrix(temp_block_buffer_B);
     }
     // initialization ends here
+    if (my_rank == 0) {
+        free_matrix(A);
+        free_matrix(B);
+    }
     
     #ifdef DEBUG
         // printf("the A block from rank %d is: \n", my_rank);
@@ -211,6 +217,8 @@ int main (int argc, char** argv) {
                     b, nt);
         comp_end = get_clock();
         computation_time += (comp_end - comp_start);
+        temp_block_buffer_A = create_matrix(size_of_A_block[0], size_of_A_block[1]);
+        temp_block_buffer_B = create_matrix(size_of_B_block[0], size_of_B_block[1]);
 
         #ifdef DEBUG
         // printf("temp_C_block from rank %d is: \n", my_rank);
@@ -274,6 +282,8 @@ int main (int argc, char** argv) {
             request + 3
             );
         MPI_Waitall(4, request, MPI_STATUS_IGNORE);
+        free_matrix(temp_block_buffer_A);
+        free_matrix(temp_block_buffer_B);
         
     }   
     #ifdef DEBUG
@@ -285,12 +295,20 @@ int main (int argc, char** argv) {
 
     // gather blocks from processors
     double **temp_for_gather; // this is used to receive gathered results
-    temp_for_gather = create_matrix(num_of_procs, size_of_A_block[0] * size_of_B_block[1]);
+    if (my_rank == 0) {
+        temp_for_gather = create_matrix(num_of_procs, size_of_A_block[0] * size_of_B_block[1]);  
+    }
+    else {
+        temp_for_gather = create_matrix(1,1);     
+    }
 
     MPI_Gather(C_block[0], size_of_A_block[0] * size_of_B_block[1], MPI_DOUBLE,
                temp_for_gather[0], size_of_A_block[0] * size_of_B_block[1], MPI_DOUBLE,
                0, MPI_COMM_WORLD
-              );
+              );  
+    
+
+    
 
     // copy to C as result
 
@@ -321,18 +339,21 @@ int main (int argc, char** argv) {
 
     free_matrix(A_block);
     free_matrix(B_block);
+    free_matrix(C_block);
+    free_matrix(temp_C_block);
     
-    free_matrix(temp_for_gather);
-    free_matrix(temp_block_buffer_A);
-    free_matrix(temp_block_buffer_B);
+    
+    // free_matrix(temp_block_buffer_A);
+    // free_matrix(temp_block_buffer_B);
 
     if (my_rank == 0) {
-        free_matrix(A);
-        free_matrix(B);
+        // free_matrix(A);
+        // free_matrix(B);
         free_matrix(C);
         #ifdef DEBUG
         free_matrix(D);
         #endif
+        free_matrix(temp_for_gather);
     }
 
     MPI_Finalize();
