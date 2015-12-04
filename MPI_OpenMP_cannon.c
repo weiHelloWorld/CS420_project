@@ -82,8 +82,13 @@ int main(int argc, char* argv[]) {
         D = create_matrix(size_of_A[0], size_of_B[1]);
         D = seq_MMM(A, B, size_of_A[0], size_of_A[1], size_of_B[1]); // this is the correct result
         #endif
-        C = create_matrix(size_of_A[0], size_of_B[1]);
     }    
+    if (my_rank == 0) {
+        C = create_matrix(size_of_A[0], size_of_B[1]);
+    }
+    else {
+        C = create_matrix(1,1); // this resolves seg fault, no idea why
+    }
 
     size_of_A_block[0] = size_of_A[0] / row_num_of_procs;
     size_of_A_block[1] = size_of_A[1] / row_num_of_procs;
@@ -131,12 +136,13 @@ int main(int argc, char* argv[]) {
                         temp_buffer_A_row[ii - i * size_of_A_block[0]][jj] = A[ii][jj];
                     }
                 }
-                MPI_Send(temp_buffer_A_row[0], 
+                MPI_Isend(temp_buffer_A_row[0], 
                         size_of_A_block[0] * size_of_A[1], 
                         MPI_DOUBLE, 
                         i,
                         0, /* tag = 0 is for A_row */
-                        MPI_COMM_WORLD
+                        MPI_COMM_WORLD,
+                        request
                         );
                 for (int j = 0; j < row_num_of_procs; j ++) {
                     for (int ii = 0; ii < size_of_B_block[0]; ii ++) {
@@ -154,30 +160,28 @@ int main(int argc, char* argv[]) {
                         }
                     }
                 }
-                MPI_Send(temp_buffer_B_row[0], 
+                MPI_Isend(temp_buffer_B_row[0], 
                         size_of_B_block[0] * size_of_B[1], 
                         MPI_DOUBLE, 
                         i, 
                         1, /* tag = 1 is for B_row */
-                        MPI_COMM_WORLD
+                        MPI_COMM_WORLD,
+                        request + 1
                         );
+                MPI_Waitall(2, request, MPI_STATUS_IGNORE);
             }
         }
     }
     else {
-        MPI_Recv(A_row[0], 
+        MPI_Irecv(A_row[0], 
             size_of_A_block[0] * size_of_A[1],
-            MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);
-        MPI_Recv(B_row[0], 
+            MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, request);
+        MPI_Irecv(B_row[0], 
             size_of_B_block[0] * size_of_B[1],
-            MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, &status);
+            MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, request + 1);
+        MPI_Waitall(2, request, MPI_STATUS_IGNORE);
     }
 
-    #ifdef DEBUG
-    if (my_rank == 0) {
-        printf("here2\n");    
-    }
-    #endif
 
 
     // multiply and shifting
@@ -203,7 +207,6 @@ int main(int argc, char* argv[]) {
             }   
         }
         comp_end = get_clock();
-        printf("comp_time = %lf\n", comp_time);
         comp_time += (comp_end - comp_start);
         // shifting B
         for (int i = 0; i < size_of_B_block[0]; i ++) {
@@ -242,7 +245,7 @@ int main(int argc, char* argv[]) {
         final_time = get_clock();
         total_time = final_time - init_time;
         printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Running Time: %lf\n", m, n, p, r, mult_mode, b, total_time);
-        
+        printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Computation Time: %lf\n", m, n, p, r, mult_mode, b, comp_time);        
     }
     
 
@@ -259,11 +262,11 @@ int main(int argc, char* argv[]) {
     if (my_rank == 0) {
         free_matrix(A);
         free_matrix(B);
-        free_matrix(C);
         #ifdef DEBUG
         free_matrix(D);
         #endif
     }
+    free_matrix(C);
 
     MPI_Finalize();
     return 0;
