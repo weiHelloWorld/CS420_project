@@ -1,0 +1,97 @@
+Architecture:          x86_64
+CPU op-mode(s):        32-bit, 64-bit
+Byte Order:            Little Endian
+CPU(s):                12
+On-line CPU(s) list:   0-11
+Thread(s) per core:    1
+Core(s) per socket:    6
+Socket(s):             2
+NUMA node(s):          2
+Vendor ID:             GenuineIntel
+CPU family:            6
+Model:                 44
+Stepping:              2
+CPU MHz:               2666.700
+BogoMIPS:              5333.20
+Virtualization:        VT-x
+L1d cache:             32K
+L1i cache:             32K
+L2 cache:              256K
+L3 cache:              12288K
+NUMA node0 CPU(s):     0,2,4,6,8,10
+NUMA node1 CPU(s):     1,3,5,7,9,11
+ 
+------------------------------------------
+naive variable ranks
+------------------------------------------
+Running ./naive.exe with ranks=1*1
+[12600 12600 12600 1 4 1 1] Naive Total Running Time: 342.649548
+[12600 12600 12600 1 4 1 1] Naive Total Computation Time: 339.173236
+ 
+Running ./naive.exe with ranks=2*2
+[12600 12600 12600 2 4 1 1] Naive Total Running Time: 89.133442
+[12600 12600 12600 2 4 1 1] Naive Total Computation Time: 85.278145
+ 
+Running ./naive.exe with ranks=3*3
+[12600 12600 12600 3 4 1 1] Naive Total Running Time: 43.950649
+[12600 12600 12600 3 4 1 1] Naive Total Computation Time: 40.152720
+ 
+------------------------------------------
+naive variable threads
+------------------------------------------
+Running ./naive.exe with threads=1
+[12600 12600 12600 1 4 1 1] Naive Total Running Time: 342.913459
+[12600 12600 12600 1 4 1 1] Naive Total Computation Time: 339.440841
+ 
+Running ./naive.exe with threads=2
+[12600 12600 12600 1 4 1 2] Naive Total Running Time: 176.746522
+[12600 12600 12600 1 4 1 2] Naive Total Computation Time: 173.248620
+ 
+Running ./naive.exe with threads=3
+[12600 12600 12600 1 4 1 3] Naive Total Running Time: 117.851894
+[12600 12600 12600 1 4 1 3] Naive Total Computation Time: 114.358158
+ 
+Running ./naive.exe with threads=4
+[12600 12600 12600 1 4 1 4] Naive Total Running Time: 88.962776
+[12600 12600 12600 1 4 1 4] Naive Total Computation Time: 85.512007
+ 
+Running ./naive.exe with threads=6
+[12600 12600 12600 1 4 1 6] Naive Total Running Time: 63.492562
+[12600 12600 12600 1 4 1 6] Naive Total Computation Time: 59.972558
+ 
+Running ./naive.exe with threads=8
+[12600 12600 12600 1 4 1 8] Naive Total Running Time: 48.901133
+[12600 12600 12600 1 4 1 8] Naive Total Computation Time: 45.363772
+ 
+Running ./naive.exe with threads=10
+[12600 12600 12600 1 4 1 10] Naive Total Running Time: 39.719457
+[12600 12600 12600 1 4 1 10] Naive Total Computation Time: 36.267756
+ 
+Running ./naive.exe with threads=12
+[12600 12600 12600 1 4 1 12] Naive Total Running Time: 36.398310
+[12600 12600 12600 1 4 1 12] Naive Total Computation Time: 32.954532
+ 
+Running ./naive.exe with threads=14
+[12600 12600 12600 1 4 1 14] Naive Total Running Time: 38.711816
+[12600 12600 12600 1 4 1 14] Naive Total Computation Time: 35.233713
+ 
+Running ./naive.exe with threads=18
+[12600 12600 12600 1 4 1 18] Naive Total Running Time: 37.323576
+[12600 12600 12600 1 4 1 18] Naive Total Computation Time: 33.852600
+ 
+Running ./naive.exe with threads=20
+[12600 12600 12600 1 4 1 20] Naive Total Running Time: 37.295676
+[12600 12600 12600 1 4 1 20] Naive Total Computation Time: 33.760747
+ 
+Running ./naive.exe with threads=24
+[12600 12600 12600 1 4 1 24] Naive Total Running Time: 38.947993
+[12600 12600 12600 1 4 1 24] Naive Total Computation Time: 35.469192
+ 
+Running ./naive.exe with threads=28
+[12600 12600 12600 1 4 1 28] Naive Total Running Time: 37.706742
+[12600 12600 12600 1 4 1 28] Naive Total Computation Time: 34.246084
+ 
+Running ./naive.exe with threads=30
+[12600 12600 12600 1 4 1 30] Naive Total Running Time: 37.544753
+[12600 12600 12600 1 4 1 30] Naive Total Computation Time: 34.074174
+ 

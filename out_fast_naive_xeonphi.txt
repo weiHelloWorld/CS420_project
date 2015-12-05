@@ -1,0 +1,144 @@
+Architecture:          x86_64
+CPU op-mode(s):        32-bit, 64-bit
+Byte Order:            Little Endian
+CPU(s):                24
+On-line CPU(s) list:   0-23
+Thread(s) per core:    1
+Core(s) per socket:    12
+Socket(s):             2
+NUMA node(s):          2
+Vendor ID:             GenuineIntel
+CPU family:            6
+Model:                 63
+Stepping:              2
+CPU MHz:               2499.990
+BogoMIPS:              4999.28
+Virtualization:        VT-x
+L1d cache:             32K
+L1i cache:             32K
+L2 cache:              256K
+L3 cache:              30720K
+NUMA node0 CPU(s):     0,2,4,6,8,10,12,14,16,18,20,22
+NUMA node1 CPU(s):     1,3,5,7,9,11,13,15,17,19,21,23
+ 
+------------------------------------------
+naive variable matrix sizes
+------------------------------------------
+Running ./naive.exe with size=1000
+[1000 1000 1000 10 4 1 1] Naive Total Running Time: 0.510987
+[1000 1000 1000 10 4 1 1] Naive Total Computation Time: 0.197378
+ 
+Running ./naive.exe with size=2000
+[2000 2000 2000 10 4 1 1] Naive Total Running Time: 0.407764
+[2000 2000 2000 10 4 1 1] Naive Total Computation Time: 0.172151
+ 
+Running ./naive.exe with size=3000
+[3000 3000 3000 10 4 1 1] Naive Total Running Time: 0.821503
+[3000 3000 3000 10 4 1 1] Naive Total Computation Time: 0.158879
+ 
+Running ./naive.exe with size=4000
+[4000 4000 4000 10 4 1 1] Naive Total Running Time: 0.654198
+[4000 4000 4000 10 4 1 1] Naive Total Computation Time: 0.216405
+ 
+Running ./naive.exe with size=5000
+[5000 5000 5000 10 4 1 1] Naive Total Running Time: 1.048674
+[5000 5000 5000 10 4 1 1] Naive Total Computation Time: 0.286361
+ 
+Running ./naive.exe with size=6000
+[6000 6000 6000 10 4 1 1] Naive Total Running Time: 1.183720
+[6000 6000 6000 10 4 1 1] Naive Total Computation Time: 0.324845
+ 
+Running ./naive.exe with size=7000
+[7000 7000 7000 10 4 1 1] Naive Total Running Time: 1.587113
+[7000 7000 7000 10 4 1 1] Naive Total Computation Time: 0.404197
+ 
+Running ./naive.exe with size=8000
+[8000 8000 8000 10 4 1 1] Naive Total Running Time: 1.906158
+[8000 8000 8000 10 4 1 1] Naive Total Computation Time: 0.309856
+ 
+Running ./naive.exe with size=9000
+[9000 9000 9000 10 4 1 1] Naive Total Running Time: 2.942477
+[9000 9000 9000 10 4 1 1] Naive Total Computation Time: 0.578876
+ 
+Running ./naive.exe with size=10000
+[10000 10000 10000 10 4 1 1] Naive Total Running Time: 3.466523
+[10000 10000 10000 10 4 1 1] Naive Total Computation Time: 0.660153
+ 
+Running ./naive.exe with size=11000
+[11000 11000 11000 10 4 1 1] Naive Total Running Time: 6.119866
+[11000 11000 11000 10 4 1 1] Naive Total Computation Time: 0.791404
+ 
+Running ./naive.exe with size=12000
+[12000 12000 12000 10 4 1 1] Naive Total Running Time: 4.472763
+[12000 12000 12000 10 4 1 1] Naive Total Computation Time: 1.028592
+ 
+Running ./naive.exe with size=13000
+[13000 13000 13000 10 4 1 1] Naive Total Running Time: 5.197874
+[13000 13000 13000 10 4 1 1] Naive Total Computation Time: 1.212318
+ 
+Running ./naive.exe with size=14000
+[14000 14000 14000 10 4 1 1] Naive Total Running Time: 6.751064
+[14000 14000 14000 10 4 1 1] Naive Total Computation Time: 1.530080
+ 
+Running ./naive.exe with size=15000
+[15000 15000 15000 10 4 1 1] Naive Total Running Time: 6.866365
+[15000 15000 15000 10 4 1 1] Naive Total Computation Time: 1.858669
+ 
+------------------------------------------
+naive variable ranks
+------------------------------------------
+Running ./naive.exe with ranks=4*4
+[12600 12600 12600 4 4 1 1] Naive Total Running Time: 8.724649
+[12600 12600 12600 4 4 1 1] Naive Total Computation Time: 5.647974
+ 
+Running ./naive.exe with ranks=5*5
+[12600 12600 12600 5 4 1 1] Naive Total Running Time: 6.713621
+[12600 12600 12600 5 4 1 1] Naive Total Computation Time: 3.777078
+ 
+Running ./naive.exe with ranks=6*6
+[12600 12600 12600 6 4 1 1] Naive Total Running Time: 5.695673
+[12600 12600 12600 6 4 1 1] Naive Total Computation Time: 2.765337
+ 
+Running ./naive.exe with ranks=7*7
+[12600 12600 12600 7 4 1 1] Naive Total Running Time: 4.810092
+[12600 12600 12600 7 4 1 1] Naive Total Computation Time: 2.024321
+ 
+Running ./naive.exe with ranks=8*8
+[12600 12600 12600 8 4 1 1] Naive Total Running Time: 4.634497
+[12600 12600 12600 8 4 1 1] Naive Total Computation Time: 1.695105
+ 
+Running ./naive.exe with ranks=9*9
+[12600 12600 12600 9 4 1 1] Naive Total Running Time: 4.433633
+[12600 12600 12600 9 4 1 1] Naive Total Computation Time: 1.330979
+ 
+Running ./naive.exe with ranks=10*10
+[12600 12600 12600 10 4 1 1] Naive Total Running Time: 4.248079
+[12600 12600 12600 10 4 1 1] Naive Total Computation Time: 1.124925
+ 
+------------------------------------------
+naive Hybrid OpenMP/MPI Test
+------------------------------------------
+Running ./naive.exe with threads=1 and ranks=10*10
+[12600 12600 12600 10 4 1 1] Naive Total Running Time: 4.205380
+[12600 12600 12600 10 4 1 1] Naive Total Computation Time: 1.207858
+ 
+Running ./naive.exe with threads=2 and ranks=7*7
+[12600 12600 12600 7 4 1 2] Naive Total Running Time: 3.873080
+[12600 12600 12600 7 4 1 2] Naive Total Computation Time: 1.113845
+ 
+Running ./naive.exe with threads=3 and ranks=6*6
+[12600 12600 12600 6 4 1 3] Naive Total Running Time: 4.477261
+[12600 12600 12600 6 4 1 3] Naive Total Computation Time: 1.149056
+ 
+Running ./naive.exe with threads=4 and ranks=5*5
+[12600 12600 12600 5 4 1 4] Naive Total Running Time: 4.475437
+[12600 12600 12600 5 4 1 4] Naive Total Computation Time: 1.092785
+ 
+Running ./naive.exe with threads=6 and ranks=4*4
+[12600 12600 12600 4 4 1 6] Naive Total Running Time: 4.944096
+[12600 12600 12600 4 4 1 6] Naive Total Computation Time: 1.821981
+ 
+Running ./naive.exe with threads=10 and ranks=3*3
+[12600 12600 12600 3 4 1 10] Naive Total Running Time: 5.250649
+[12600 12600 12600 3 4 1 10] Naive Total Computation Time: 1.829605
+ 

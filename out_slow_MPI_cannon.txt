@@ -1,0 +1,97 @@
+Architecture:          x86_64
+CPU op-mode(s):        32-bit, 64-bit
+Byte Order:            Little Endian
+CPU(s):                12
+On-line CPU(s) list:   0-11
+Thread(s) per core:    1
+Core(s) per socket:    6
+Socket(s):             2
+NUMA node(s):          2
+Vendor ID:             GenuineIntel
+CPU family:            6
+Model:                 44
+Stepping:              2
+CPU MHz:               2666.700
+BogoMIPS:              5333.20
+Virtualization:        VT-x
+L1d cache:             32K
+L1i cache:             32K
+L2 cache:              256K
+L3 cache:              12288K
+NUMA node0 CPU(s):     0,2,4,6,8,10
+NUMA node1 CPU(s):     1,3,5,7,9,11
+ 
+------------------------------------------
+MPI_cannon variable ranks
+------------------------------------------
+Running ./MPI_cannon.exe with ranks=1*1
+[12600 12600 12600 1 4 1 1] MPI_cannon Total Running Time: 343.480852
+[12600 12600 12600 1 4 1 1] MPI_cannon Total Computation Time: 339.865887
+ 
+Running ./MPI_cannon.exe with ranks=2*2
+[12600 12600 12600 2 4 1 1] MPI_cannon Total Running Time: 89.411726
+[12600 12600 12600 2 4 1 1] MPI_cannon Total Computation Time: 85.269348
+ 
+Running ./MPI_cannon.exe with ranks=3*3
+[12600 12600 12600 3 4 1 1] MPI_cannon Total Running Time: 44.518988
+[12600 12600 12600 3 4 1 1] MPI_cannon Total Computation Time: 39.908267
+ 
+------------------------------------------
+MPI_cannon variable threads
+------------------------------------------
+Running ./MPI_cannon.exe with threads=1
+[12600 12600 12600 1 4 1 1] MPI_cannon Total Running Time: 342.561023
+[12600 12600 12600 1 4 1 1] MPI_cannon Total Computation Time: 338.945904
+ 
+Running ./MPI_cannon.exe with threads=2
+[12600 12600 12600 1 4 1 2] MPI_cannon Total Running Time: 175.197896
+[12600 12600 12600 1 4 1 2] MPI_cannon Total Computation Time: 171.922189
+ 
+Running ./MPI_cannon.exe with threads=3
+[12600 12600 12600 1 4 1 3] MPI_cannon Total Running Time: 117.481961
+[12600 12600 12600 1 4 1 3] MPI_cannon Total Computation Time: 114.221030
+ 
+Running ./MPI_cannon.exe with threads=4
+[12600 12600 12600 1 4 1 4] MPI_cannon Total Running Time: 89.276728
+[12600 12600 12600 1 4 1 4] MPI_cannon Total Computation Time: 86.038142
+ 
+Running ./MPI_cannon.exe with threads=6
+[12600 12600 12600 1 4 1 6] MPI_cannon Total Running Time: 63.347951
+[12600 12600 12600 1 4 1 6] MPI_cannon Total Computation Time: 60.103592
+ 
+Running ./MPI_cannon.exe with threads=8
+[12600 12600 12600 1 4 1 8] MPI_cannon Total Running Time: 48.424161
+[12600 12600 12600 1 4 1 8] MPI_cannon Total Computation Time: 45.180140
+ 
+Running ./MPI_cannon.exe with threads=10
+[12600 12600 12600 1 4 1 10] MPI_cannon Total Running Time: 39.516830
+[12600 12600 12600 1 4 1 10] MPI_cannon Total Computation Time: 36.302921
+ 
+Running ./MPI_cannon.exe with threads=12
+[12600 12600 12600 1 4 1 12] MPI_cannon Total Running Time: 35.641723
+[12600 12600 12600 1 4 1 12] MPI_cannon Total Computation Time: 32.440045
+ 
+Running ./MPI_cannon.exe with threads=14
+[12600 12600 12600 1 4 1 14] MPI_cannon Total Running Time: 39.850022
+[12600 12600 12600 1 4 1 14] MPI_cannon Total Computation Time: 36.576498
+ 
+Running ./MPI_cannon.exe with threads=18
+[12600 12600 12600 1 4 1 18] MPI_cannon Total Running Time: 38.228038
+[12600 12600 12600 1 4 1 18] MPI_cannon Total Computation Time: 34.940020
+ 
+Running ./MPI_cannon.exe with threads=20
+[12600 12600 12600 1 4 1 20] MPI_cannon Total Running Time: 37.117219
+[12600 12600 12600 1 4 1 20] MPI_cannon Total Computation Time: 33.804040
+ 
+Running ./MPI_cannon.exe with threads=24
+[12600 12600 12600 1 4 1 24] MPI_cannon Total Running Time: 38.034035
+[12600 12600 12600 1 4 1 24] MPI_cannon Total Computation Time: 34.291783
+ 
+Running ./MPI_cannon.exe with threads=28
+[12600 12600 12600 1 4 1 28] MPI_cannon Total Running Time: 37.328036
+[12600 12600 12600 1 4 1 28] MPI_cannon Total Computation Time: 34.050037
+ 
+Running ./MPI_cannon.exe with threads=30
+[12600 12600 12600 1 4 1 30] MPI_cannon Total Running Time: 37.138804
+[12600 12600 12600 1 4 1 30] MPI_cannon Total Computation Time: 33.856332
+ 
