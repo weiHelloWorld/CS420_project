@@ -1,0 +1,95 @@
+#!/bin/bash
+#PBS -q secondary
+#PBS -l walltime=04:00:00
+#PBS -l nodes=1:ppn=12:taub
+#PBS -N project_cs420
+#PBS -j oe
+
+# Move to the current directory
+module load intel/15.0 # temp, to be deleted
+cd $PBS_O_WORKDIR
+
+# It turns out that MPI is incorrectly allocating OpenMP procs and MPI ranks. 
+# This code from MP4 (somehow) fixes the issue. 
+module load mvapich2/2.1rc1-intel-15.0 
+uniq ${PBS_NODEFILE} > /tmp/${USER}_NODEFILE
+hst="-hostfile /tmp/${USER}_NODEFILE"
+
+# List of programs to be run
+programs="MPI_cannon naive"
+
+for program in $programs
+do
+    out_file_name="out_slow_${program}.txt"
+    exec_program="./$program.exe"
+    lscpu >> ${out_file_name}
+    echo " " >> ${out_file_name}
+
+    # Matrix Size Test: Increasing size with const. threads and ranks
+    # Takes approx. 2.5 mins in total for each program
+    # echo "------------------------------------------" >> ${out_file_name}
+    # echo "$program variable matrix sizes" >> ${out_file_name}
+    # echo "------------------------------------------" >> ${out_file_name}
+
+    # for size in {1000..15000..1000}
+    # do
+    #     echo "Running $exec_program with size=${size}" >> ${out_file_name}
+    #     export OMP_NUM_THREADS=1
+    #     mpirun -np 100 ${hst} ${exec_program} ${size} ${size} ${size} 10 4 1 1 >> ${out_file_name}
+    #     echo " " >> ${out_file_name}
+    # done
+
+    # Square matrices of constant size and increasing ranks
+    # Takes approx. 3 min in total for each program
+    size=12600
+    echo "------------------------------------------" >> ${out_file_name}
+    echo "$program variable ranks" >> ${out_file_name}
+    echo "------------------------------------------" >> ${out_file_name}
+
+    for ranks in 1 2 3
+    do
+        echo "Running ${exec_program} with ranks=${ranks}*${ranks}" >> ${out_file_name}
+        export OMP_NUM_THREADS=1
+        mpirun -np $((ranks*ranks)) ${hst} ${exec_program} ${size} ${size} ${size} ${ranks} 4 1 1 >> ${out_file_name}
+        echo " " >> ${out_file_name}
+    done
+
+    # OpenMP Testing: Increasing number of threads 
+    # Takes approx. 6 min in total for each program
+    size=12600
+    echo "------------------------------------------" >> ${out_file_name}
+    echo "$program variable threads" >> ${out_file_name}
+    echo "------------------------------------------" >> ${out_file_name}
+
+    for threads in 1 2 3 4 6 8 10 12 14 18 20 24 28 30
+    do
+        echo "Running ${exec_program} with threads=${threads}" >> ${out_file_name}
+        export OMP_NUM_THREADS=${threads}
+        mpirun -np 1 ${hst} ${exec_program} ${size} ${size} ${size} 1 4 1 ${threads} >> ${out_file_name}
+        echo " " >> ${out_file_name}
+    done
+
+    # Hybrid OpenMP/MPI Testing: Increasing number of threads while decreasing ranks 
+    # Takes approx. 12 min in total for each program
+    # size=12600
+    # echo "------------------------------------------" >> ${out_file_name}
+    # echo "$program Hybrid OpenMP/MPI Test" >> ${out_file_name}
+    # echo "------------------------------------------" >> ${out_file_name}
+
+    # threads_list=(1 2 3 4 6 10)
+    # ranks_row_list=(10 7 6 5 4 3)
+
+    # for i in {0..5}
+    # do
+    #     threads=${threads_list[$i]}
+    #     ranks=${ranks_row_list[$i]}
+    #     export OMP_NUM_THREADS=${threads}
+    #     echo "Running ${exec_program} with threads=${threads} and ranks=${ranks}*${ranks}" >> ${out_file_name}
+    #     mpirun -np $((ranks*ranks)) ${hst} ${exec_program} ${size} ${size} ${size} ${ranks} 4 1 ${threads} >> ${out_file_name}
+    #     echo " " >> ${out_file_name}
+    # done
+
+done
+
+# Notes
+
