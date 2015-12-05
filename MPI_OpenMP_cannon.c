@@ -24,7 +24,7 @@
 #include <assert.h>   
 #include "support.h"
 
-// #define DEBUG
+#define DEBUG
 
 int main(int argc, char* argv[]) {
     MPI_Status status;
@@ -48,8 +48,6 @@ int main(int argc, char* argv[]) {
     n = atoi(argv[2]);
     p = atoi(argv[3]);
     r = atoi(argv[4]);
-    mult_mode = atoi(argv[5]);
-    b = atoi(argv[6]);
 
     int required = MPI_THREAD_FUNNELED; // MPI funcs are called by master thread
     int provided;
@@ -269,8 +267,8 @@ int main(int argc, char* argv[]) {
     if (my_rank == 0) {
         final_time = get_clock();
         total_time = final_time - init_time;
-        printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Running Time: %lf\n", m, n, p, r, mult_mode, b, total_time);
-        printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Computation Time: %lf\n", m, n, p, r, mult_mode, b, comp_time);        
+        printf("[%d %d %d %d] MPI_OpenMP_cannon Total Running Time: %lf\n", m, n, p, r, total_time);
+        printf("[%d %d %d %d] MPI_OpenMP_cannon Total Computation Time: %lf\n", m, n, p, r, comp_time);        
     }
     
 
