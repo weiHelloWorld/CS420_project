@@ -5,8 +5,8 @@
 
 // Assumed processors are in rXr grid. 
 //
-// Usage: mpirun -np r ./MPI_OpenMP_cannon.exe m n p r 
-// Usage: mpirun -np 3 ./MPI_OpenMP_cannon.exe 12 12 9 3
+// Usage: mpirun -np r ./MPI_OpenMP_cannon.exe m n p r mult_mode b
+// Usage: mpirun -np 3 ./MPI_OpenMP_cannon.exe 12 12 9 3 4 1
 
 // Make sure:
 // 1. r divides m, n, p
@@ -24,7 +24,7 @@
 #include <assert.h>   
 #include "support.h"
 
-#define DEBUG
+// #define DEBUG
 
 int main(int argc, char* argv[]) {
     MPI_Status status;
@@ -33,8 +33,8 @@ int main(int argc, char* argv[]) {
     int my_rank, num_of_procs;
     double init_time, final_time, total_time, comp_time = 0, comp_start, comp_end;
 
-    if(argc != 5) {
-        fprintf(stderr, "Usage: %s m n p r\n", argv[0]);
+    if(argc != 7) {
+        fprintf(stderr, "Usage: %s m n p r mult_mode b\n", argv[0]);
         exit(0);
     }
 
@@ -48,6 +48,8 @@ int main(int argc, char* argv[]) {
     n = atoi(argv[2]);
     p = atoi(argv[3]);
     r = atoi(argv[4]);
+    mult_mode = atoi(argv[5]);
+    b = atoi(argv[6]);
 
     int required = MPI_THREAD_FUNNELED; // MPI funcs are called by master thread
     int provided;
@@ -204,7 +206,9 @@ int main(int argc, char* argv[]) {
                     B_block[i][j] = B_row[i][my_thread_index * size_of_B_block[1] + j];
                 }
             }
-            multiply_BLAS(A_block, B_block, C_block, size_of_A_block[0], size_of_A_block[1], size_of_B_block[1]);
+
+            multiply_selector(mult_mode, A_block, B_block, C_block, size_of_A_block[0], size_of_A_block[1], size_of_B_block[1], b);
+                
 
             free_matrix(A_block);
             free_matrix(B_block);
@@ -214,7 +218,6 @@ int main(int argc, char* argv[]) {
                     C_row[i][my_thread_index * size_of_B_block[1] + j] += C_block[i][j];
                 }
             }   
-
 
             free_matrix(C_block);
 
@@ -267,8 +270,8 @@ int main(int argc, char* argv[]) {
     if (my_rank == 0) {
         final_time = get_clock();
         total_time = final_time - init_time;
-        printf("[%d %d %d %d] MPI_OpenMP_cannon Total Running Time: %lf\n", m, n, p, r, total_time);
-        printf("[%d %d %d %d] MPI_OpenMP_cannon Total Computation Time: %lf\n", m, n, p, r, comp_time);        
+        printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Running Time: %lf\n", m, n, p, r, mult_mode, b, total_time);
+        printf("[%d %d %d %d %d %d] MPI_OpenMP_cannon Total Computation Time: %lf\n", m, n, p, r, mult_mode, b, comp_time);        
     }
     
 
