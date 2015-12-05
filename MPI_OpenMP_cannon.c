@@ -5,13 +5,12 @@
 
 // Assumed processors are in rXr grid. 
 //
-// Usage: mpirun -np r ./MPI_OpenMP_cannon.exe m n p r mult_mode b
-// Usage: mpirun -np 3 ./MPI_OpenMP_cannon.exe 12 12 9 3 4 1
+// Usage: mpirun -np r ./MPI_OpenMP_cannon.exe m n p r 
+// Usage: mpirun -np 3 ./MPI_OpenMP_cannon.exe 12 12 9 3
 
 // Make sure:
 // 1. r divides m, n, p
 // 2. number of processors are r
-// 3. b divides m/r AND n AND p/c
 
 // divide matrices A and B into n^2 blocks, the blocks in the same row are in the same processor, 
 // but in different threads, the blocks in different rows are in different processors
@@ -34,8 +33,8 @@ int main(int argc, char* argv[]) {
     int my_rank, num_of_procs;
     double init_time, final_time, total_time, comp_time = 0, comp_start, comp_end;
 
-    if(argc != 7) {
-        fprintf(stderr, "Usage: %s m n p r mult_mode b \n", argv[0]);
+    if(argc != 5) {
+        fprintf(stderr, "Usage: %s m n p r\n", argv[0]);
         exit(0);
     }
 
@@ -98,6 +97,7 @@ int main(int argc, char* argv[]) {
     assert(size_of_A_block[1] == size_of_B_block[0]);
 
     double **A_row, **B_row, **C_row, **temp_buffer_A_row, **temp_buffer_B_row; 
+    double **A_block, **B_block, **C_block;
 
     A_row = create_matrix(size_of_A_block[0], size_of_A[1]);
     B_row = create_matrix(size_of_B_block[0], size_of_B[1]);
@@ -147,12 +147,6 @@ int main(int argc, char* argv[]) {
                 for (int j = 0; j < row_num_of_procs; j ++) {
                     for (int ii = 0; ii < size_of_B_block[0]; ii ++) {
                         for (int jj = 0; jj < size_of_B_block[1]; jj ++) {
-                            #ifdef DEBUG
-                            // printf("temp_buffer_B_row[%d][%d] = B[%d][%d] \n", 
-                            //         ii, jj + j * size_of_B_block[1],
-                            //         ii + ((i + j) % row_num_of_procs) * size_of_B_block[0], 
-                            //         jj + j * size_of_B_block[1]);
-                            #endif
 
                             temp_buffer_B_row[ii][jj + j * size_of_B_block[1]] 
                                 = B[ii + ((i + j) % row_num_of_procs) * size_of_B_block[0]][jj + j * size_of_B_block[1]];
@@ -190,21 +184,52 @@ int main(int argc, char* argv[]) {
         // multiply
         comp_start = get_clock();
 
-        #pragma omp parallel 
+        #pragma omp parallel private (A_block, B_block, C_block)
         {
             int my_thread_index;
             my_thread_index = omp_get_thread_num();
             
+            A_block = create_matrix(size_of_A_block[0], size_of_A_block[1]);
+            B_block = create_matrix(size_of_B_block[0], size_of_B_block[1]);
+            C_block = create_matrix(size_of_A_block[0], size_of_B_block[1]);
+
+            // copy corresponding part in A_row and B_row into A_block, B_block, for calling computation function
             for (int i = 0; i < size_of_A_block[0]; i ++) {
                 for (int j = 0; j < size_of_A_block[1]; j ++) {
-                    for (int k = 0; k < size_of_A_block[1]; k ++) {
-                        C_row[i][my_thread_index * size_of_B_block[1] + j] 
-                            += A_row[i][( (my_rank + my_thread_index + iteration) % row_num_of_procs) * size_of_A_block[1] + k]
-                            * B_row[k][my_thread_index * size_of_B_block[1] + j];    
-                            /* here we do shifting in A by adding an offset to column index */
-                    }
+                    A_block[i][j] = A_row[i][( (my_rank + my_thread_index + iteration) % row_num_of_procs) * size_of_A_block[1] + j];
+                    /* here we do shifting in A by adding an offset to column index */
+                }
+            }
+
+            for (int i = 0; i < size_of_B_block[0]; i ++) {
+                for (int j = 0; j < size_of_B_block[1]; j ++) {
+                    B_block[i][j] = B_row[i][my_thread_index * size_of_B_block[1] + j];
+                }
+            }
+            multiply_BLAS(A_block, B_block, C_block, size_of_A_block[0], size_of_A_block[1], size_of_B_block[1]);
+
+            free_matrix(A_block);
+            free_matrix(B_block);
+
+            for (int i = 0; i < size_of_A_block[0]; i ++) {
+                for (int j = 0; j < size_of_B_block[1]; j ++) {
+                    C_row[i][my_thread_index * size_of_B_block[1] + j] += C_block[i][j];
                 }
             }   
+
+
+            free_matrix(C_block);
+
+            // for (int i = 0; i < size_of_A_block[0]; i ++) {
+            //     for (int j = 0; j < size_of_B_block[1]; j ++) {
+            //         for (int k = 0; k < size_of_A_block[1]; k ++) {
+            //             C_row[i][my_thread_index * size_of_B_block[1] + j] 
+            //                 += A_row[i][( (my_rank + my_thread_index + iteration) % row_num_of_procs) * size_of_A_block[1] + k]
+            //                 * B_row[k][my_thread_index * size_of_B_block[1] + j];    
+            //                 /* here we do shifting in A by adding an offset to column index */
+            //         }
+            //     }
+            // }   
         }
         comp_end = get_clock();
         comp_time += (comp_end - comp_start);
