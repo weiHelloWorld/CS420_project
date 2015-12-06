@@ -1,0 +1,121 @@
+Architecture:          x86_64
+CPU op-mode(s):        32-bit, 64-bit
+Byte Order:            Little Endian
+CPU(s):                24
+On-line CPU(s) list:   0-23
+Thread(s) per core:    1
+Core(s) per socket:    12
+Socket(s):             2
+NUMA node(s):          2
+Vendor ID:             GenuineIntel
+CPU family:            6
+Model:                 63
+Stepping:              2
+CPU MHz:               2500.241
+BogoMIPS:              4999.27
+Virtualization:        VT-x
+L1d cache:             32K
+L1i cache:             32K
+L2 cache:              256K
+L3 cache:              30720K
+NUMA node0 CPU(s):     0,2,4,6,8,10,12,14,16,18,20,22
+NUMA node1 CPU(s):     1,3,5,7,9,11,13,15,17,19,21,23
+ 
+------------------------------------------
+MPI_cannon variable ranks
+------------------------------------------
+Running ./MPI_cannon.mic with ranks=1*1
+[3780 3780 3780 1 4 1 1] MPI_cannon Total Running Time: 18.267585
+[3780 3780 3780 1 4 1 1] MPI_cannon Total Computation Time: 16.800798
+ 
+Running ./MPI_cannon.mic with ranks=2*2
+[3780 3780 3780 2 4 1 1] MPI_cannon Total Running Time: 6.020882
+[3780 3780 3780 2 4 1 1] MPI_cannon Total Computation Time: 3.923212
+ 
+Running ./MPI_cannon.mic with ranks=3*3
+[3780 3780 3780 3 4 1 1] MPI_cannon Total Running Time: 3.687739
+[3780 3780 3780 3 4 1 1] MPI_cannon Total Computation Time: 1.782878
+ 
+Running ./MPI_cannon.mic with ranks=4*4
+[3780 3780 3780 4 4 1 1] MPI_cannon Total Running Time: 2.909740
+[3780 3780 3780 4 4 1 1] MPI_cannon Total Computation Time: 1.078327
+ 
+Running ./MPI_cannon.mic with ranks=5*5
+[3780 3780 3780 5 4 1 1] MPI_cannon Total Running Time: 2.630713
+[3780 3780 3780 5 4 1 1] MPI_cannon Total Computation Time: 0.818937
+ 
+Running ./MPI_cannon.mic with ranks=6*6
+[3780 3780 3780 6 4 1 1] MPI_cannon Total Running Time: 2.591846
+[3780 3780 3780 6 4 1 1] MPI_cannon Total Computation Time: 0.489738
+ 
+Running ./MPI_cannon.mic with ranks=7*7
+[3780 3780 3780 7 4 1 1] MPI_cannon Total Running Time: 2.382542
+[3780 3780 3780 7 4 1 1] MPI_cannon Total Computation Time: 0.384290
+ 
+Running ./MPI_cannon.mic with ranks=9*9
+[3780 3780 3780 9 4 1 1] MPI_cannon Total Running Time: 2.450841
+[3780 3780 3780 9 4 1 1] MPI_cannon Total Computation Time: 0.345124
+ 
+Running ./MPI_cannon.mic with ranks=10*10
+[3780 3780 3780 10 4 1 1] MPI_cannon Total Running Time: 2.458734
+[3780 3780 3780 10 4 1 1] MPI_cannon Total Computation Time: 0.307019
+ 
+Running ./MPI_cannon.mic with ranks=12*12
+[3780 3780 3780 12 4 1 1] MPI_cannon Total Running Time: 3.091585
+[3780 3780 3780 12 4 1 1] MPI_cannon Total Computation Time: 0.570843
+ 
+Running ./MPI_cannon.mic with ranks=14*14
+[3780 3780 3780 14 4 1 1] MPI_cannon Total Running Time: 3.705214
+[3780 3780 3780 14 4 1 1] MPI_cannon Total Computation Time: 0.539850
+ 
+Running ./MPI_cannon.mic with ranks=15*15
+[3780 3780 3780 15 4 1 1] MPI_cannon Total Running Time: 3.492668
+[3780 3780 3780 15 4 1 1] MPI_cannon Total Computation Time: 0.466270
+ 
+------------------------------------------
+MPI_cannon variable threads
+------------------------------------------
+Running ./MPI_cannon.mic with threads=1
+[3780 3780 3780 1 4 1 1] MPI_cannon Total Running Time: 18.228891
+[3780 3780 3780 1 4 1 1] MPI_cannon Total Computation Time: 16.763041
+ 
+Running ./MPI_cannon.mic with threads=5
+[3780 3780 3780 1 4 1 5] MPI_cannon Total Running Time: 5.147018
+[3780 3780 3780 1 4 1 5] MPI_cannon Total Computation Time: 3.685322
+ 
+Running ./MPI_cannon.mic with threads=10
+[3780 3780 3780 1 4 1 10] MPI_cannon Total Running Time: 3.934930
+[3780 3780 3780 1 4 1 10] MPI_cannon Total Computation Time: 2.472949
+ 
+Running ./MPI_cannon.mic with threads=20
+[3780 3780 3780 1 4 1 20] MPI_cannon Total Running Time: 4.049516
+[3780 3780 3780 1 4 1 20] MPI_cannon Total Computation Time: 2.587061
+ 
+Running ./MPI_cannon.mic with threads=30
+[3780 3780 3780 1 4 1 30] MPI_cannon Total Running Time: 4.695455
+[3780 3780 3780 1 4 1 30] MPI_cannon Total Computation Time: 3.229331
+ 
+Running ./MPI_cannon.mic with threads=60
+[3780 3780 3780 1 4 1 60] MPI_cannon Total Running Time: 3.125946
+[3780 3780 3780 1 4 1 60] MPI_cannon Total Computation Time: 1.662087
+ 
+Running ./MPI_cannon.mic with threads=70
+[3780 3780 3780 1 4 1 70] MPI_cannon Total Running Time: 3.236138
+[3780 3780 3780 1 4 1 70] MPI_cannon Total Computation Time: 1.754855
+ 
+Running ./MPI_cannon.mic with threads=90
+[3780 3780 3780 1 4 1 90] MPI_cannon Total Running Time: 3.127731
+[3780 3780 3780 1 4 1 90] MPI_cannon Total Computation Time: 1.650649
+ 
+Running ./MPI_cannon.mic with threads=140
+[3780 3780 3780 1 4 1 140] MPI_cannon Total Running Time: 3.328922
+[3780 3780 3780 1 4 1 140] MPI_cannon Total Computation Time: 1.830617
+ 
+Running ./MPI_cannon.mic with threads=180
+[3780 3780 3780 1 4 1 180] MPI_cannon Total Running Time: 3.494293
+[3780 3780 3780 1 4 1 180] MPI_cannon Total Computation Time: 2.014077
+ 
+Running ./MPI_cannon.mic with threads=210
+[3780 3780 3780 1 4 1 210] MPI_cannon Total Running Time: 3.805126
+[3780 3780 3780 1 4 1 210] MPI_cannon Total Computation Time: 2.280642
+ 

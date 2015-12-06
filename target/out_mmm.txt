@@ -1,0 +1,139 @@
+Architecture:          x86_64
+CPU op-mode(s):        32-bit, 64-bit
+Byte Order:            Little Endian
+CPU(s):                24
+On-line CPU(s) list:   0-23
+Thread(s) per core:    1
+Core(s) per socket:    12
+Socket(s):             2
+NUMA node(s):          2
+Vendor ID:             GenuineIntel
+CPU family:            6
+Model:                 63
+Stepping:              2
+CPU MHz:               2500.241
+BogoMIPS:              4999.27
+Virtualization:        VT-x
+L1d cache:             32K
+L1i cache:             32K
+L2 cache:              256K
+L3 cache:              30720K
+NUMA node0 CPU(s):     0,2,4,6,8,10,12,14,16,18,20,22
+NUMA node1 CPU(s):     1,3,5,7,9,11,13,15,17,19,21,23
+ 
+------------------------------------------
+naive variable mmm type and size
+------------------------------------------
+Running ./naive.exe with mmm_type=0 and size=100
+[100 100 100 1 0 50 1] Naive Total Running Time: 0.003658
+[100 100 100 1 0 50 1] Naive Total Computation Time: 0.003462
+ 
+Running ./naive.exe with mmm_type=0 and size=200
+[200 200 200 1 0 50 1] Naive Total Running Time: 0.023391
+[200 200 200 1 0 50 1] Naive Total Computation Time: 0.022293
+ 
+Running ./naive.exe with mmm_type=0 and size=300
+[300 300 300 1 0 50 1] Naive Total Running Time: 0.076222
+[300 300 300 1 0 50 1] Naive Total Computation Time: 0.073964
+ 
+Running ./naive.exe with mmm_type=0 and size=500
+[500 500 500 1 0 50 1] Naive Total Running Time: 0.352360
+[500 500 500 1 0 50 1] Naive Total Computation Time: 0.345935
+ 
+Running ./naive.exe with mmm_type=0 and size=700
+[700 700 700 1 0 50 1] Naive Total Running Time: 0.958033
+[700 700 700 1 0 50 1] Naive Total Computation Time: 0.948184
+ 
+Running ./naive.exe with mmm_type=0 and size=1000
+[1000 1000 1000 1 0 50 1] Naive Total Running Time: 2.779906
+[1000 1000 1000 1 0 50 1] Naive Total Computation Time: 2.759703
+ 
+Running ./naive.exe with mmm_type=0 and size=2000
+[2000 2000 2000 1 0 50 1] Naive Total Running Time: 28.290251
+[2000 2000 2000 1 0 50 1] Naive Total Computation Time: 28.205488
+ 
+Running ./naive.exe with mmm_type=0 and size=3000
+[3000 3000 3000 1 0 50 1] Naive Total Running Time: 102.143225
+[3000 3000 3000 1 0 50 1] Naive Total Computation Time: 101.935559
+ 
+Running ./naive.exe with mmm_type=0 and size=4000
+[4000 4000 4000 1 0 50 1] Naive Total Running Time: 248.589387
+[4000 4000 4000 1 0 50 1] Naive Total Computation Time: 248.224704
+ 
+Running ./naive.exe with mmm_type=0 and size=5000
+[5000 5000 5000 1 0 50 1] Naive Total Running Time: 493.136140
+[5000 5000 5000 1 0 50 1] Naive Total Computation Time: 492.564320
+ 
+Running ./naive.exe with mmm_type=1 and size=100
+[100 100 100 1 1 50 1] Naive Total Running Time: 0.001698
+[100 100 100 1 1 50 1] Naive Total Computation Time: 0.001485
+ 
+Running ./naive.exe with mmm_type=1 and size=200
+[200 200 200 1 1 50 1] Naive Total Running Time: 0.007687
+[200 200 200 1 1 50 1] Naive Total Computation Time: 0.006658
+ 
+Running ./naive.exe with mmm_type=1 and size=300
+[300 300 300 1 1 50 1] Naive Total Running Time: 0.023263
+[300 300 300 1 1 50 1] Naive Total Computation Time: 0.021033
+ 
+Running ./naive.exe with mmm_type=1 and size=500
+[500 500 500 1 1 50 1] Naive Total Running Time: 0.141454
+[500 500 500 1 1 50 1] Naive Total Computation Time: 0.135125
+ 
+Running ./naive.exe with mmm_type=1 and size=700
+[700 700 700 1 1 50 1] Naive Total Running Time: 0.375354
+[700 700 700 1 1 50 1] Naive Total Computation Time: 0.365826
+ 
+Running ./naive.exe with mmm_type=1 and size=1000
+[1000 1000 1000 1 1 50 1] Naive Total Running Time: 1.099803
+[1000 1000 1000 1 1 50 1] Naive Total Computation Time: 1.080383
+ 
+Running ./naive.exe with mmm_type=1 and size=2000
+[2000 2000 2000 1 1 50 1] Naive Total Running Time: 17.359434
+[2000 2000 2000 1 1 50 1] Naive Total Computation Time: 17.275036
+ 
+Running ./naive.exe with mmm_type=1 and size=3000
+[3000 3000 3000 1 1 50 1] Naive Total Running Time: 63.335915
+[3000 3000 3000 1 1 50 1] Naive Total Computation Time: 63.129645
+ 
+Running ./naive.exe with mmm_type=1 and size=4000
+[4000 4000 4000 1 1 50 1] Naive Total Running Time: 207.866143
+[4000 4000 4000 1 1 50 1] Naive Total Computation Time: 207.502481
+ 
+Running ./naive.exe with mmm_type=1 and size=5000
+[5000 5000 5000 1 1 50 1] Naive Total Running Time: 435.165092
+[5000 5000 5000 1 1 50 1] Naive Total Computation Time: 434.595574
+ 
+Running ./naive.exe with mmm_type=2 and size=100
+[100 100 100 1 2 50 1] Naive Total Running Time: 0.002230
+[100 100 100 1 2 50 1] Naive Total Computation Time: 0.002020
+ 
+Running ./naive.exe with mmm_type=2 and size=200
+[200 200 200 1 2 50 1] Naive Total Running Time: 0.012499
+[200 200 200 1 2 50 1] Naive Total Computation Time: 0.011444
+ 
+Running ./naive.exe with mmm_type=2 and size=300
+[300 300 300 1 2 50 1] Naive Total Running Time: 0.040406
+[300 300 300 1 2 50 1] Naive Total Computation Time: 0.038153
+ 
+Running ./naive.exe with mmm_type=2 and size=500
+[500 500 500 1 2 50 1] Naive Total Running Time: 0.191024
+[500 500 500 1 2 50 1] Naive Total Computation Time: 0.184657
+ 
+Running ./naive.exe with mmm_type=2 and size=700
+[700 700 700 1 2 50 1] Naive Total Running Time: 0.486128
+[700 700 700 1 2 50 1] Naive Total Computation Time: 0.476878
+ 
+Running ./naive.exe with mmm_type=2 and size=1000
+[1000 1000 1000 1 2 50 1] Naive Total Running Time: 1.443698
+[1000 1000 1000 1 2 50 1] Naive Total Computation Time: 1.424070
+ 
+Running ./naive.exe with mmm_type=2 and size=2000
+[2000 2000 2000 1 2 50 1] Naive Total Running Time: 16.108703
+[2000 2000 2000 1 2 50 1] Naive Total Computation Time: 16.024886
+ 
+Running ./naive.exe with mmm_type=2 and size=3000
+[3000 3000 3000 1 2 50 1] Naive Total Running Time: 59.571389
+[3000 3000 3000 1 2 50 1] Naive Total Computation Time: 59.364689
+ 
+Running ./naive.exe with mmm_type=2 and size=4000

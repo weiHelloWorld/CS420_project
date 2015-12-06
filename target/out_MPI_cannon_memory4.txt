@@ -1,0 +1,139 @@
+Architecture:          x86_64
+CPU op-mode(s):        32-bit, 64-bit
+Byte Order:            Little Endian
+CPU(s):                12
+On-line CPU(s) list:   0-11
+Thread(s) per core:    1
+Core(s) per socket:    6
+Socket(s):             2
+NUMA node(s):          2
+Vendor ID:             GenuineIntel
+CPU family:            6
+Model:                 44
+Stepping:              2
+CPU MHz:               2666.713
+BogoMIPS:              5333.20
+Virtualization:        VT-x
+L1d cache:             32K
+L1i cache:             32K
+L2 cache:              256K
+L3 cache:              12288K
+NUMA node0 CPU(s):     0,2,4,6,8,10
+NUMA node1 CPU(s):     1,3,5,7,9,11
+ 
+------------------------------------------
+MPI_cannon variable matrix sizes
+------------------------------------------
+Running ./MPI_cannon.exe with size=1000
+[1000 1000 1000 10 4 1 1] MPI_cannon Total Running Time: 5.991315
+[1000 1000 1000 10 4 1 1] MPI_cannon Total Computation Time: 0.253545
+7190445
+ 
+Running ./MPI_cannon.exe with size=2000
+[2000 2000 2000 10 4 1 1] MPI_cannon Total Running Time: 5.510786
+[2000 2000 2000 10 4 1 1] MPI_cannon Total Computation Time: 0.385528
+7658381
+ 
+Running ./MPI_cannon.exe with size=3000
+[3000 3000 3000 10 4 1 1] MPI_cannon Total Running Time: 8.424086
+[3000 3000 3000 10 4 1 1] MPI_cannon Total Computation Time: 0.616352
+9678669
+ 
+Running ./MPI_cannon.exe with size=4000
+[4000 4000 4000 10 4 1 1] MPI_cannon Total Running Time: 12.457085
+[4000 4000 4000 10 4 1 1] MPI_cannon Total Computation Time: 1.089480
+13566362
+ 
+Running ./MPI_cannon.exe with size=5000
+[5000 5000 5000 10 4 1 1] MPI_cannon Total Running Time: 9.614918
+[5000 5000 5000 10 4 1 1] MPI_cannon Total Computation Time: 1.879000
+18446169
+ 
+Running ./MPI_cannon.exe with size=6000
+[6000 6000 6000 10 4 1 1] MPI_cannon Total Running Time: 17.326573
+[6000 6000 6000 10 4 1 1] MPI_cannon Total Computation Time: 3.306739
+23954845
+ 
+Running ./MPI_cannon.exe with size=7000
+[7000 7000 7000 10 4 1 1] MPI_cannon Total Running Time: 12.663237
+[7000 7000 7000 10 4 1 1] MPI_cannon Total Computation Time: 4.930382
+30413146
+ 
+Running ./MPI_cannon.exe with size=8000
+[8000 8000 8000 10 4 1 1] MPI_cannon Total Running Time: 21.194337
+[8000 8000 8000 10 4 1 1] MPI_cannon Total Computation Time: 7.274009
+37799130
+ 
+Running ./MPI_cannon.exe with size=9000
+[9000 9000 9000 10 4 1 1] MPI_cannon Total Running Time: 20.023444
+[9000 9000 9000 10 4 1 1] MPI_cannon Total Computation Time: 10.308665
+46177308
+ 
+Running ./MPI_cannon.exe with size=10000
+[10000 10000 10000 10 4 1 1] MPI_cannon Total Running Time: 23.964652
+[10000 10000 10000 10 4 1 1] MPI_cannon Total Computation Time: 14.404922
+55498778
+ 
+Running ./MPI_cannon.exe with size=11000
+[11000 11000 11000 10 4 1 1] MPI_cannon Total Running Time: 29.560529
+[11000 11000 11000 10 4 1 1] MPI_cannon Total Computation Time: 18.538376
+65796122
+ 
+Running ./MPI_cannon.exe with size=12000
+[12000 12000 12000 10 4 1 1] MPI_cannon Total Running Time: 37.351954
+[12000 12000 12000 10 4 1 1] MPI_cannon Total Computation Time: 24.084895
+77052957
+ 
+Running ./MPI_cannon.exe with size=13000
+[13000 13000 13000 10 4 1 1] MPI_cannon Total Running Time: 49.691254
+[13000 13000 13000 10 4 1 1] MPI_cannon Total Computation Time: 30.538776
+90759613
+ 
+Running ./MPI_cannon.exe with size=14000
+[14000 14000 14000 10 4 1 1] MPI_cannon Total Running Time: 53.470954
+[14000 14000 14000 10 4 1 1] MPI_cannon Total Computation Time: 39.240524
+102417956
+ 
+Running ./MPI_cannon.exe with size=15000
+[15000 15000 15000 10 4 1 1] MPI_cannon Total Running Time: 59.723074
+[15000 15000 15000 10 4 1 1] MPI_cannon Total Computation Time: 46.792792
+116554970
+ 
+------------------------------------------
+MPI_cannon variable ranks
+------------------------------------------
+Running ./MPI_cannon.exe with ranks=4*4
+[12600 12600 12600 4 4 1 1] MPI_cannon Total Running Time: 164.785055
+[12600 12600 12600 4 4 1 1] MPI_cannon Total Computation Time: 159.388277
+497769592
+ 
+Running ./MPI_cannon.exe with ranks=5*5
+[12600 12600 12600 5 4 1 1] MPI_cannon Total Running Time: 106.126504
+[12600 12600 12600 5 4 1 1] MPI_cannon Total Computation Time: 101.017695
+319005958
+ 
+Running ./MPI_cannon.exe with ranks=6*6
+[12600 12600 12600 6 4 1 1] MPI_cannon Total Running Time: 75.205591
+[12600 12600 12600 6 4 1 1] MPI_cannon Total Computation Time: 70.509469
+227711865
+ 
+Running ./MPI_cannon.exe with ranks=7*7
+[12600 12600 12600 7 4 1 1] MPI_cannon Total Running Time: 58.249698
+[12600 12600 12600 7 4 1 1] MPI_cannon Total Computation Time: 54.090514
+174531883
+ 
+Running ./MPI_cannon.exe with ranks=8*8
+[12600 12600 12600 8 4 1 1] MPI_cannon Total Running Time: 56.301972
+[12600 12600 12600 8 4 1 1] MPI_cannon Total Computation Time: 41.573730
+127132397
+ 
+Running ./MPI_cannon.exe with ranks=9*9
+[12600 12600 12600 9 4 1 1] MPI_cannon Total Running Time: 57.065873
+[12600 12600 12600 9 4 1 1] MPI_cannon Total Computation Time: 32.686119
+101795295
+ 
+Running ./MPI_cannon.exe with ranks=10*10
+[12600 12600 12600 10 4 1 1] MPI_cannon Total Running Time: 40.186430
+[12600 12600 12600 10 4 1 1] MPI_cannon Total Computation Time: 28.625861
+84272537
+ 

@@ -1,7 +1,7 @@
 #!/bin/bash
-#PBS -q secondary
-#PBS -l walltime=00:30:00
-#PBS -l nodes=9:ppn=12:taub
+#PBS -q cs
+#PBS -l walltime=01:00:00
+#PBS -l nodes=1:ppn=24:golub
 #PBS -N project_cs420
 #PBS -j oe
 
@@ -16,41 +16,40 @@ uniq ${PBS_NODEFILE} > /tmp/${USER}_NODEFILE
 hst="-hostfile /tmp/${USER}_NODEFILE"
 
 # List of programs to be run
-programs="MPI_OpenMP_cannon"
+programs="naive"
 
 for program in $programs
 do
-    out_file_name="target/out_fast_${program}.txt"
+    out_file_name="out_mmm3.txt"
     exec_program="./$program.exe"
     lscpu >> ${out_file_name}
     echo " " >> ${out_file_name}
 
-    # Matrix Size Test: Increasing size with const. threads and ranks
-    # Takes approx. 2.5 mins in total for each program
     echo "------------------------------------------" >> ${out_file_name}
-    echo "$program variable matrix sizes" >> ${out_file_name}
+    echo "$program variable mmm type and size" >> ${out_file_name}
     echo "------------------------------------------" >> ${out_file_name}
 
-    for size in {1000..15000..1000}
+    # for mmm_type in 3 4
+    # do
+    #     for size in 100 200 300 500 700 1000 2000 3000 4000 5000
+    #     do 
+    #         echo "Running $exec_program with mmm_type=${mmm_type} and size=${size}" >> ${out_file_name}
+    #         export OMP_NUM_THREADS=1
+    #         mpirun -np 1 ${hst} ${exec_program} ${size} ${size} ${size} 1 ${mmm_type} 50 1 >> ${out_file_name}
+    #         echo " " >> ${out_file_name}
+    #     done
+    # done
+
+    size=5000
+    echo "------------------------------------------" >> ${out_file_name}
+    echo "$program variable blocksize" >> ${out_file_name}
+    echo "------------------------------------------" >> ${out_file_name}
+
+    for blocksize in 20 40 50 100 200 250 500 1000
     do
-        echo "Running $exec_program with size=${size}" >> ${out_file_name}
+        echo "Running ${exec_program} with blocksize=${blocksize}" >> ${out_file_name}
         export OMP_NUM_THREADS=1
-        mpirun -np 100 ${hst} ${exec_program} ${size} ${size} ${size} 10 4 1 >> ${out_file_name}
-        echo " " >> ${out_file_name}
-    done
-
-    # Square matrices of constant size and increasing ranks
-    # Takes approx. 3 min in total for each program
-    size=12600
-    echo "------------------------------------------" >> ${out_file_name}
-    echo "$program variable ranks" >> ${out_file_name}
-    echo "------------------------------------------" >> ${out_file_name}
-
-    for ranks in 4 5 6 7 8 9 10
-    do
-        echo "Running ${exec_program} with ranks=${ranks}*${ranks}" >> ${out_file_name}
-        export OMP_NUM_THREADS=1
-        mpirun -np $((ranks*ranks)) ${hst} ${exec_program} ${size} ${size} ${size} ${ranks} 4 1 >> ${out_file_name}
+        mpirun -np 1 ${hst} ${exec_program} ${size} ${size} ${size} 1 3 ${blocksize} 1 >> ${out_file_name}
         echo " " >> ${out_file_name}
     done
 
